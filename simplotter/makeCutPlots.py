@@ -160,27 +160,42 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
 #########################################################################################
 
 import argparse
-parser = argparse.ArgumentParser(description="Process MC PFNano files to the PAIReD data format for training.")
+parser = argparse.ArgumentParser(description="Produce cut distribution plots for SimDoublets including total and passing doublets + cut value.")
 parser.add_argument("DQMfile", type=str, help="Path to the ROOT DQM input file")
-parser.add_argument("-c", "--config", type=str, default="cutParameters/currentCuts.yml", help="Path to config file for applied cut values. "+
+parser.add_argument("config", type=str, help="Path to config file for applied cut values. "+
                     "Supports yaml file with all cuts or the cmssw config file that ran the SimDoubletsAnalyzer "+
                     "(please specify the module name of the analyzer under `-a ANALYZERNAME` if it differs from the default `simDoubletsAnalyzerPhase2`)")
-parser.add_argument("-d", "--DIR", type=str, default="plots", help="directory to save the plots in")
-parser.add_argument("--cut", default=None, help="cut parameter to be plotted (by default all are plotted)")
+parser.add_argument("-d", "--directory", type=str, default="plots", help="directory to save the plots in")
+parser.add_argument("-c", "--cut", default=None, help="cut parameter to be plotted (by default all are plotted)")
 parser.add_argument("-n", "--nevents", default=-1, type=int,  help="Number of events (used for scaling to numbers per event if given)")
 parser.add_argument("-a", "--analyzer", type=str, default="simDoubletsAnalyzerPhase2", help="Name of the analyzer module "+
                     "(needs to be given if the config file is cmssw config, default `simDoubletsAnalyzerPhase2`)")
 
 def main():
+    print("="*30)
+    print("  Start makeCutPlots()")
+    print("="*30)
+
     setStyle()
     args = parser.parse_args()
 
+    print("Run the simplotter with the following settings:")
+    print(" * DQM file:", args.DQMfile)
+
     # if the given config is yaml, it should already contain the cut values in the correct format
     if args.config[-4:] == ".yml":
+        print(" * provided config file for cuts (yaml):", args.config)
         CUTfile = args.config
+        neventsFromConfig = -1
 
     # elif python format, assume it is a cmssw config file
     elif args.config[-3:] == ".py":
+        CUTfile = args.directory + '/cutValues.yml'
+        print(" * provided config file for cuts (CMSSW config):", args.config)
+        print("   -> read cut parameters from CMSSW config and create yaml config here:")
+        print("     ", CUTfile)
+        print(" * for that use the cuts set in the analyzer module named:", args.analyzer)
+
         # in this case write your own yml based on the given config
         import importlib.util
         import sys
@@ -198,9 +213,9 @@ def main():
             cutname: list(getattr(simDoubletsAnalyzer, cutname)) for cutname in CUTlist_vectors
         }
 
+        neventsFromConfig = config_module.process.maxEvents.input.value()
 
-        Path(args.DIR).mkdir(parents=True, exist_ok=True)
-        CUTfile = args.DIR + '/cutValues.yml'
+        Path(args.directory).mkdir(parents=True, exist_ok=True)
         with open(CUTfile, 'w') as outfile:
             yaml.dump(CUTdict, outfile, default_flow_style=False)
     
@@ -208,12 +223,38 @@ def main():
     else:
         raise ValueError("Invalid parameter `config`! Please give either a yaml file with the cut parameters (.yml) or the cmssw config directly (.py).")
 
-    nevents = None if args.nevents==-1 else args.nevents
+    print(" * output directory:", args.directory)
 
+    # set number of events
+    with uproot.open(args.DQMfile) as ROOTfile:
+        if "DQMData/Run 1/EventInfo/processedEvents" in ROOTfile:
+            hist = ROOTfile["DQMData/Run 1/EventInfo/processedEvents"]
+            nevents = hist.values()[0]
+        elif neventsFromConfig > 0:
+            nevents = neventsFromConfig
+        elif args.nevents > 0:
+            nevents = args.nevents
+        else:
+            nevents = None
+    
+    if nevents is None:
+        print(" * do not scale plots to number of events")
+    else:
+        print(" * determined number of events:", nevents)
+
+    if args.cut is None:
+        print(" * plot all distributions of cut parameters")
+    else:
+        print(" * plot only the distribution for the cut:", args.cut)
+
+    print("\n")        
     # produce the plots
     makeCutPlots(args.DQMfile, CUTfile=CUTfile,
-                 DIR=args.DIR, cut=args.cut, num_events=nevents)
-    
+                 DIR=args.directory, cut=args.cut, num_events=nevents)
+
+    print("="*30)
+    print("  End makeCutPlots()")
+    print("="*30)
 
 if __name__ == "__main__":
     main()
