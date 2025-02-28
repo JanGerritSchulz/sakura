@@ -16,8 +16,10 @@ cd sakura
 pip3 install .
 ```
 
+*Note: for installing in developer mode do `python3 -m pip install -e .` instead. When installed as editable, a project can be edited in-place without reinstallation:
+
 ## Usage of  `simplotter`
-At the moment, the package supports plotting the distributions of the cut variables on doublets of the true SimDoublets. This can be done with the command line function `makeCutPlots`. More on its usage below.
+At the moment, the package supports plotting the distributions of the cut variables on doublets of the true SimDoublets and some general plots for the SimDoublets. Thi can be done with the command line functions `makeCutPlots` and `makeGeneralPlots`. More on their usage below. There is also the function `makeAllPlots` which essentially runs both.
 
 ### `makeCutPlots`
 This command line function plots the distributions of doublet cut parameters for the true SimDoublets of TrackingParticles which were produced by the `SimDoubletsAnalyzer` module in CMSSW. You can get a summary of the command options with 
@@ -46,4 +48,29 @@ An example application could look like this:
 makeCutPlots DQM_SimDoublets_currentCuts.root simDoublets_currentCuts_TEST.py -d /eos/user/j/jaschulz/www/Plots/NGT/test/sakura_makeCutPlots -n 5000 -a simDoubletsAnalyzerCurrentCuts
 ```
 
-The result of this call can be found [here](https://jaschulz.web.cern.ch/Plots/NGT/test/sakura_makeCutPlots/).
+The result of this call can be found [here](https://jaschulz.web.cern.ch/Plots/NGT/test/sakura_makeCutPlots/cutParameters).
+
+
+### `makeGeneralPlots`
+This command line function plots some general distributions for the true SimDoublets of TrackingParticles which were produced by the `SimDoubletsAnalyzer` module in CMSSW. You can get a summary of the command options with 
+```bash
+makeGeneralPlots --help
+```
+
+You have to provide one **required argument**: 
+- positional argument: **DQM file**. It expects the path to the DQM ROOT file which was produced in the harvesting step and contains all the histograms.
+
+Then, you have a couple of optional arguments summarized in the following table.
+
+| Option              | Meaning                                                                                                                                                                                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-d` / `--directory`      | Directory to save the plots in.                                                                                                                                                                                                                                                                   |
+| `-n` / `--nevents`  | Number of events (used for scaling to numbers per event if provided). The function will try to determine the number of events on its own first by looking at the DQM file. If nothing is found there, take the given value. Defaults to `-1` meaning no scaling applied. |
+
+#### Example use case
+An example application could look like this:
+```bash
+makeGeneralPlots DQM_SimDoublets_currentCuts.root -d /eos/user/j/jaschulz/www/Plots/NGT/test/sakura_makeCutPlots -n 5000
+```
+
+The result of this call can be found [here](https://jaschulz.web.cern.ch/Plots/NGT/test/sakura_makeCutPlots/general).
