@@ -16,7 +16,7 @@ with open(requirements_path) as f:
         install_requires.append(line)
 
 setup(name="sakura",
-      version='0.0.1',
+      version='0.0.0',
       description="A plotting package for CMS DQM files with special functionality for SimDoublets",
       long_description_content_type="text/markdown",
       author="J. G. Schulz",
