@@ -8,6 +8,10 @@ from pathlib import Path
 import yaml
 from simplotter.dataconfig.layerPairs import simplePixelLayerPairs
 
+CUTlist_vectors = ["cellMinz", "cellMaxz", "cellPhiCuts", "cellMaxr"]
+CUTlist_scalars = ["cellMinYSizeB1", "cellMinYSizeB2", 
+           "cellMaxDYSize12", "cellMaxDYSize", "cellMaxDYPred", "cellZ0Cut", "cellPtCut"]
+
 
 # ------------------------------------------------------------------------------------------
 # main function for plotting
@@ -158,15 +162,52 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
 import argparse
 parser = argparse.ArgumentParser(description="Process MC PFNano files to the PAIReD data format for training.")
 parser.add_argument("DQMfile", type=str, help="Path to the ROOT DQM input file")
-parser.add_argument("-c", "--CUTfile", type=str, default="cutParameters/currentCuts.yml", help="Path to config file for applied cut values")
+parser.add_argument("-c", "--config", type=str, default="cutParameters/currentCuts.yml", help="Path to config file for applied cut values. "+
+                    "Supports yaml file with all cuts or the cmssw config file that ran the SimDoubletsAnalyzer "+
+                    "(please specify the module name of the analyzer under `-a ANALYZERNAME` if it differs from the default `simDoubletsAnalyzerPhase2`)")
 parser.add_argument("-d", "--DIR", type=str, default="plots", help="directory to save the plots in")
 parser.add_argument("--cut", default=None, help="cut parameter to be plotted (by default all are plotted)")
 parser.add_argument("-n", "--nevents", default=None,  help="Number of events (used for scaling to numbers per event if given)")
+parser.add_argument("-a", "--analyzer", type=str, default="simDoubletsAnalyzerPhase2", help="Name of the analyzer module "+
+                    "(needs to be given if the config file is cmssw config, default `simDoubletsAnalyzerPhase2`)")
 
 def main():
     setStyle()
     args = parser.parse_args()
-    makeCutPlots(args.DQMfile, CUTfile=args.CUTfile,
+
+    # if the given config is yaml, it should already contain the cut values in the correct format
+    if args.config[-4:] == ".yml":
+        CUTfile = args.config
+
+    # elif python format, assume it is a cmssw config file
+    elif args.config[-3:] == ".py":
+        # in this case write your own yml based on the given config
+        import importlib
+        cmsconfig = importlib.import_module(args.config)
+
+        # get the analyzer
+        simDoubletsAnalyzer = getattr(cmsconfig.process, args.analyzer, None)
+        if simDoubletsAnalyzer is None:
+            raise ValueError("Invalid parameter `analyzer`! In the given CMSSW config, no module with the name `%s` was found" % args.analyzer)
+        CUTdict = {
+            cutname: getattr(simDoubletsAnalyzer, cutname).value() for cutname in CUTlist_scalars
+        } | {
+            cutname: list(getattr(simDoubletsAnalyzer, cutname)) for cutname in CUTlist_vectors
+        }
+
+
+        Path(args.DIR).mkdir(parents=True, exist_ok=True)
+        CUTfile = args.DIR + '/cutValues.yml'
+        with open(CUTfile, 'w') as outfile:
+            yaml.dump(CUTdict, outfile, default_flow_style=False)
+    
+    # else, something's wrong
+    else:
+        raise ValueError("Invalid parameter `config`! Please give either a yaml file with the cut parameters (.yml) or the cmssw config directly (.py).")
+
+
+    # produce the plots
+    makeCutPlots(args.DQMfile, CUTfile=CUTfile,
                  DIR=args.DIR, cut=args.cut, num_events=args.nevents)
     
 
