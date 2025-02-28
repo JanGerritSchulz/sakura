@@ -16,14 +16,15 @@ with open(requirements_path) as f:
         install_requires.append(line)
 
 setup(name="sakura",
-      version='0.0.0',
+      version='0.1.0',
       description="A plotting package for CMS DQM files with special functionality for SimDoublets",
       long_description_content_type="text/markdown",
       author="J. G. Schulz",
       url="https://github.com/JanGerritSchulz/sakura",
       long_description=long_desc,
       entry_points={'console_scripts':
-                    ['makeCutPlots = simplotter.makeCutPlots:main']},
+                    ['makeCutPlots = simplotter.makeCutPlots:main',
+                     'makeGeneralPlots = simplotter.makeGeneralPlots:main']},
       packages=find_packages(),
       zip_safe=False,
       classifiers=[
