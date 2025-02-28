@@ -2,7 +2,8 @@
 # - for plotting SimDoublets
 #
 # Author: Jan Schulz
-# Date: January 8 2025
+# Date: February 28 2025
 #
 
 from simplotter.makeCutPlots import makeCutPlots
+from simplotter.makeGeneralPlots import makeGeneralPlots
