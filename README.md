@@ -7,6 +7,7 @@ This small package `sakura` is just a tiny helper for plotting CMS DQM files. Th
 - [Installation](#installation)
 - [Usage of `simplotter`](#usage-of--simplotter)
     - [`makeCutPlots`](#makecutplots)
+    - [`makeGeneralPlots`](#makegeneralplots)
 
 ## Installation
 To install the package, first down load this repository, and pip install by performing the following commands:
