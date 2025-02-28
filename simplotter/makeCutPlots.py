@@ -167,7 +167,7 @@ parser.add_argument("-c", "--config", type=str, default="cutParameters/currentCu
                     "(please specify the module name of the analyzer under `-a ANALYZERNAME` if it differs from the default `simDoubletsAnalyzerPhase2`)")
 parser.add_argument("-d", "--DIR", type=str, default="plots", help="directory to save the plots in")
 parser.add_argument("--cut", default=None, help="cut parameter to be plotted (by default all are plotted)")
-parser.add_argument("-n", "--nevents", default=None,  help="Number of events (used for scaling to numbers per event if given)")
+parser.add_argument("-n", "--nevents", default=-1, type=int,  help="Number of events (used for scaling to numbers per event if given)")
 parser.add_argument("-a", "--analyzer", type=str, default="simDoubletsAnalyzerPhase2", help="Name of the analyzer module "+
                     "(needs to be given if the config file is cmssw config, default `simDoubletsAnalyzerPhase2`)")
 
@@ -182,11 +182,14 @@ def main():
     # elif python format, assume it is a cmssw config file
     elif args.config[-3:] == ".py":
         # in this case write your own yml based on the given config
-        import importlib
-        cmsconfig = importlib.import_module(args.config)
+        import importlib.util
+        import sys
+        spec = importlib.util.spec_from_file_location("process", args.config)
+        config_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(config_module)
 
         # get the analyzer
-        simDoubletsAnalyzer = getattr(cmsconfig.process, args.analyzer, None)
+        simDoubletsAnalyzer = getattr(config_module.process, args.analyzer, None)
         if simDoubletsAnalyzer is None:
             raise ValueError("Invalid parameter `analyzer`! In the given CMSSW config, no module with the name `%s` was found" % args.analyzer)
         CUTdict = {
@@ -205,10 +208,11 @@ def main():
     else:
         raise ValueError("Invalid parameter `config`! Please give either a yaml file with the cut parameters (.yml) or the cmssw config directly (.py).")
 
+    nevents = None if args.nevents==-1 else args.nevents
 
     # produce the plots
     makeCutPlots(args.DQMfile, CUTfile=CUTfile,
-                 DIR=args.DIR, cut=args.cut, num_events=args.nevents)
+                 DIR=args.DIR, cut=args.cut, num_events=nevents)
     
 
 if __name__ == "__main__":
