@@ -17,7 +17,7 @@ cd sakura
 pip3 install .
 ```
 
-*Note: for installing in developer mode do `python3 -m pip install -e .` instead. When installed as editable, a project can be edited in-place without reinstallation:
+*Note: for installing in developer mode do `python3 -m pip install -e .` instead. When installed as editable, a project can be edited in-place without reinstallation.*
 
 ## Usage of  `simplotter`
 At the moment, the package supports plotting the distributions of the cut variables on doublets of the true SimDoublets and some general plots for the SimDoublets. Thi can be done with the command line functions `makeCutPlots` and `makeGeneralPlots`. More on their usage below. There is also the function `makeAllPlots` which essentially runs both.
