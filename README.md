@@ -8,6 +8,8 @@ This small package `sakura` is just a tiny helper for plotting CMS DQM files. Th
 - [Usage of `simplotter`](#usage-of--simplotter)
     - [`makeCutPlots`](#makecutplots)
     - [`makeGeneralPlots`](#makegeneralplots)
+- [Usage of `rootcomparer`](#usage-of--rootcomparer)
+    - [`compareROOT`](#compareroot)
 
 ## Installation
 To install the package, first down load this repository, and pip install by performing the following commands:
@@ -101,8 +103,8 @@ compareROOT DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root DQM_SimDoublets
 ```
 <details>
 <summary>The output could look like this:</summary>
+
 ```bash
-[]$ compareROOT DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root DQM_SimDoublets_currentCuts.root
 ==============================
   Start compareROOTfiles()
 ==============================
@@ -129,5 +131,6 @@ All histograms identical.
   End compareROOTfiles()
 ==============================
 ```
+
 </details>
 
