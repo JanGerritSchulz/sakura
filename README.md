@@ -75,3 +75,59 @@ makeGeneralPlots DQM_SimDoublets_currentCuts.root -d /eos/user/j/jaschulz/www/Pl
 ```
 
 The result of this call can be found [here](https://jaschulz.web.cern.ch/Plots/NGT/test/sakura_makeCutPlots/general).
+
+
+
+## Usage of  `rootcomparer`
+
+This is a super small additional package just for comparing two ROOT files such as DQM files.
+
+### `compareROOT`
+This command line function checks if two ROOT files differ in terms of their histograms. You can get a summary of the command options with 
+```bash
+compareROOT --help
+```
+
+You have to provide two **required arguments**: 
+- first positional argument: **DQM file 1**. It expects the path to the DQM ROOT file which was produced in the harvesting step and contains all the histograms.
+- first positional argument: **DQM file 2**. It expects the path to the DQM ROOT file which was produced in the harvesting step and contains all the histograms.
+
+With the `--folder/-f` option you can set the subfolder in the ROOT tree teat
+
+#### Example use case
+An example application could look like this:
+```bash
+compareROOT DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root DQM_SimDoublets_currentCuts.root
+```
+<details>
+<summary>The output could look like this:</summary>
+```bash
+[]$ compareROOT DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root DQM_SimDoublets_currentCuts.root
+==============================
+  Start compareROOTfiles()
+==============================
+Compare the following two ROOT files:
+ * DQM file 1: DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root
+ * DQM file 2: DQM_SimDoublets_currentCuts.root
+
+Additional settings:
+ * folder to be compared: DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimDoublets
+ * accepted tolerance when comparing: 1e-05
+
+
+All histograms identical.
+
+ /************************************************/
+ /*   805 /  805 compared TH1 histograms passed  */
+ /*     2 /    2 compared TH2 histograms passed  */
+ /*     2 /    2 compared TProfiles passed       */
+ /*                                              */
+ /*                 TEST PASSED                  */
+ /************************************************/
+
+==============================
+  End compareROOTfiles()
+==============================
+```
+</details>
+
