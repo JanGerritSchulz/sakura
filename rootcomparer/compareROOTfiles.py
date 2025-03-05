@@ -102,7 +102,7 @@ def compareROOTfiles(ROOTfile1, ROOTfile2, folder=None, tolerance=1e-5):
 #########################################################################################
 
 import argparse
-parser = argparse.ArgumentParser(description="Produce cut distribution plots for SimDoublets including total and passing doublets + cut value.")
+parser = argparse.ArgumentParser(description="Compare the content of two ROOT files by looping over the common histograms and checking their data.")
 parser.add_argument("DQMfile1", type=str, help="Path to the first ROOT DQM input file")
 parser.add_argument("DQMfile2", type=str, help="Path to the second ROOT DQM input file")
 parser.add_argument("-f", "--folder", default="DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimDoublets", type=str, help="Folder to check (default is SimDoublets folder)")
