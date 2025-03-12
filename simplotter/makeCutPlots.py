@@ -10,7 +10,9 @@ from simplotter.dataconfig.layerPairs import simplePixelLayerPairs
 
 CUTlist_vectors = ["cellMinz", "cellMaxz", "cellPhiCuts", "cellMaxr"]
 CUTlist_scalars = ["cellMinYSizeB1", "cellMinYSizeB2", 
-           "cellMaxDYSize12", "cellMaxDYSize", "cellMaxDYPred", "cellZ0Cut", "cellPtCut"]
+           "cellMaxDYSize12", "cellMaxDYSize", "cellMaxDYPred", "cellZ0Cut", "cellPtCut",
+           "CAThetaCutBarrel", "CAThetaCutForward", "ptmin", "hardCurvCut", 
+           "dcaCutInnerTriplet", "dcaCutOuterTriplet"]
 
 
 # ------------------------------------------------------------------------------------------
@@ -82,6 +84,76 @@ def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCu
 
 # ------------------------------------------------------------------------------------------
 
+def plotConnectionCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCutMax=np.inf, innerLayer=None, outerLayer=None, x_label="", y_label_add="", directory="plots", num_events=None):
+    if num_events is None:
+        num_events = 1
+        ylabel_suff = ""
+    else:
+        ylabel_suff = " / event"
+    
+    if innerLayer is not None:
+        subfolder = "lp_%i_%i/" % (innerLayer, outerLayer)
+    else:
+        subfolder = "connectionCuts/"
+    
+    # load histograms
+    hTot = Hist(ROOTfile, "cutParameters/" + subfolder + histname, scale_for_values = 1/num_events)
+    hPass = Hist(ROOTfile, "cutParameters/%spass_%s" % (subfolder,histname), scale_for_values = 1/num_events)
+    
+    # create new figure
+    fig, ax = plt.subplots()
+
+    legend_title = None
+    if "CATheta" in histname:
+        legend_title = "cut at CATheta / ptmin\n= %.4f / %.2f = %.4f" % (cellCutMax[0], cellCutMax[1], cellCutMax[0] / cellCutMax[1])
+        cellCutMax = cellCutMax[0] / cellCutMax[1]
+    
+    # plot
+    y = hTot.values
+    x = hTot.edges
+    icutMax = np.argmax(x>cellCutMax) if (cellCutType=="max" or cellCutType=="both") else None
+    icutMin = np.argmin(x<cellCutMin) if (cellCutType=="min" or cellCutType=="both") else None
+    
+    if (cellCutType=="max"):
+        plt.stairs(y[icutMin:icutMax],np.append(x[icutMin:icutMax], [cellCutMax]), fill=True, color='#5790fc', alpha=0.5, label="connections passing this cut")
+    elif (cellCutType=="min"):
+        plt.stairs(y[icutMin-1:icutMax],np.append([cellCutMin], x[icutMin:icutMax]), fill=True, color='#5790fc', alpha=0.5, label="connections passing this cut")
+    elif (cellCutType=="both"):
+        plt.stairs(y[icutMin-1:icutMax],np.append(np.append([cellCutMin], x[icutMin:icutMax]), [cellCutMax]), fill=True, color='#5790fc', alpha=0.5, label="connections passing this cut")
+    plt.stairs(hPass.values, x, fill=True, color='#5790fc', label="connections passing all cuts")
+    plt.stairs(y, x, color="darkblue", label="all connections")
+    #plt.stairs(y[icut-1:icut],x[icut-1:icut+1], color="darkblue", alpha=0.3, fill=True)
+    
+    if (cellCutType=="max"):
+        plt.axvline(cellCutMax, color="darkblue", linestyle="--", label="cut value")
+    elif (cellCutType=="min"):
+        plt.axvline(cellCutMin, color="darkblue", linestyle="--", label="cut value")
+    elif (cellCutType=="both"):
+        plt.axvline(cellCutMax, color="darkblue", linestyle="--")
+        plt.axvline(cellCutMin, color="darkblue", linestyle="--", label="cut values")
+    
+    # fix axes
+    ylabel("Number of SimDoublet connections" + y_label_add + ylabel_suff)
+    xlabel(x_label)
+    if "hardCurv" not in histname:
+        plt.xscale("log")
+    
+    # add the CMS label
+    cmslabel(llabel="Private Work", com=14)
+    
+    # save and show the figure
+    if innerLayer is not None:
+        plt.legend(title = "Layer pair (%i,%i)" % (innerLayer, outerLayer) + " " + legend_title)
+        Path("%s/connectionCuts/%s" % (directory, histname)).mkdir(parents=True, exist_ok=True)
+        savefig("%s/connectionCuts/%s/%s.png" % (directory, histname, subfolder[:-1]))
+    else:
+        plt.legend(title=legend_title)
+        Path("%s/connectionCuts" % (directory)).mkdir(parents=True, exist_ok=True)
+        savefig("%s/connectionCuts/%s.png" % (directory, histname))
+    plt.close()
+
+# ------------------------------------------------------------------------------------------
+
 # function for get the global and layer-pair dependent cuts
 def getCutParameters(CUTfile="cutParameters/currentCuts.yml"):
     with open(CUTfile, "r") as f_:
@@ -103,7 +175,15 @@ def getCutParameters(CUTfile="cutParameters/currentCuts.yml"):
         "innerZ": ["both", CUTS["cellMinz"], CUTS["cellMaxz"], "$z$-coordinate of inner RecHit [cm]"],
     }
 
-    return GlobalCutParameters, LayerPairCutParameters
+    ConnectionCutParameters = {
+        "CAThetaBarrel_over_ptmin" : ["max", -np.inf, (CUTS["CAThetaCutBarrel"], CUTS["ptmin"]), r"CATheta cut variable $\frac{2 A}{|d\cdot \text{d} r|}$", "\nwith centered RecHit in barrel"],
+        "CAThetaForward_over_ptmin" : ["max", -np.inf, (CUTS["CAThetaCutForward"], CUTS["ptmin"]), r"CATheta cut variable $\frac{2 A}{|d\cdot \text{d} r|}$", "\nwith centered RecHit in endcap"],
+        "hardCurv" : ["max", -np.inf, CUTS["hardCurvCut"], r"Curvature $\frac{1}{|R|}$ [1/cm]", ""],
+        "dcaInner" : ["max", -np.inf, CUTS["dcaCutInnerTriplet"], "Transverse distance to the beamspot\nat point of closest approach [cm]", ""],
+        "dcaOuter" : ["max", -np.inf, CUTS["dcaCutOuterTriplet"], "Transverse distance to the beamspot\nat point of closest approach [cm]", ""],
+    }
+
+    return GlobalCutParameters, LayerPairCutParameters, ConnectionCutParameters
 
 
 # define function that performs the plotting of all cuts
@@ -115,7 +195,7 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
     ROOTFile = uproot.open(DQMfile)["DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimDoublets"]
 
     # get cut parameters and values
-    GlobalCutParameters, LayerPairCutParameters = getCutParameters(CUTfile)
+    GlobalCutParameters, LayerPairCutParameters, ConnectionCutParameters = getCutParameters(CUTfile)
 
     # if no cut is given, plot all of them
     if cut is None:
@@ -131,6 +211,11 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
                 cutMax = cutMaxArr[i]
                 plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
                                 innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events)
+        
+        for histname in ConnectionCutParameters.keys():
+            cutType, cutMin, cutMax, label, label_add = ConnectionCutParameters[histname]
+            plotConnectionCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
+                                x_label=label, y_label_add=label_add, directory=DIR, num_events=num_events)
     
     # otherwise just plot the given cut parameter
     else:
@@ -149,9 +234,15 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
                 plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
                                 innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events)
         
+        elif cut in ConnectionCutParameters.keys():
+            histname = cut
+            cutType, cutMin, cutMax, label, label_add = ConnectionCutParameters[histname]
+            plotConnectionCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax,
+                                       x_label=label, y_label_add=label_add, directory=DIR, num_events=num_events)
+        
         else:
             raise ValueError('Invalid parameter `cut`! Specify the cut parameter you want to plot from the list below or `None` to plot all of them.'
-                             +'\nList of valid `cut` parameters: ' + str(list(GlobalCutParameters.keys()) + list(LayerPairCutParameters.keys())))
+                             +'\nList of valid `cut` parameters: ' + str(list(GlobalCutParameters.keys()) + list(LayerPairCutParameters.keys()) + list(ConnectionCutParameters.keys())))
 
 
 
