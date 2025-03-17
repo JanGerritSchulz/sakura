@@ -10,153 +10,26 @@ from pathlib import Path
 import yaml
 from simplotter.dataconfig.layerPairs import simplePixelLayerPairs, NonSkippingLayerPairs
 
+from simplotter.plotterfunctions.plotSimNtuplets import plotSimNtuplets
+from simplotter.plotterfunctions.plotEfficiency import plotEfficiency
+from simplotter.plotterfunctions.plotDiscreteHist import plotDiscreteHist
+from simplotter.plotterfunctions.plotLayerPairs import plotLayerPairs
+
 # ------------------------------------------------------------------------------------------
 # main function for plotting
-# ------------------------------------------------------------------------------------------
-
-def plotLayerPairs(ROOTfile, directory="plots", num_events=None):
-    if num_events is None:
-        num_events = 1
-        ylabel_suff = ""
-    else:
-        ylabel_suff = " / event"
-    
-    # load histograms
-    h = Hist2D(ROOTfile["general"], "layerPairs", "Outer layer ID", "Inner layer ID", scale_for_values = 1/num_events)
-    
-    # create new figure
-    fig, ax = plt.subplots()
-    
-    cmap = mpl.pyplot.get_cmap("plasma")
-    cmap.set_under('w')
-    cax = h.plot(ax, True, cmap=cmap)
-    fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=0, 
-                                                                vmax=np.max(h.values)), 
-                                    cmap=cmap), ax=ax, extend='min',
-                label="Number of SimDoublets" + ylabel_suff)
-    ylabel("Outer layer ID")
-
-    Ntot = np.sum(h.values)
-    Nrec = 0
-    NrecNoSkip = 0
-    for pair in simplePixelLayerPairs:
-        innerLayer, outerLayer = pair
-        plt.plot(np.array([-0.5, -0.5, 0.5, 0.5, -0.5]) * 0. + innerLayer, 
-                np.array([-0.5, 0.5, 0.5, -0.5, -0.5]) * 0. + outerLayer, ".r", linewidth=1)
-        Nrec += h.values[innerLayer, outerLayer]
-    for pair in NonSkippingLayerPairs:
-        innerLayer, outerLayer = pair
-        NrecNoSkip += h.values[innerLayer, outerLayer]
-    plt.plot([-0.5, -0.5, 3.5, 3.5, -0.5], 
-            [-0.5, 3.5, 3.5, -0.5, -0.5], "-k")
-    plt.plot([3.5, 3.5, 15.5, 15.5, 3.5], 
-            [3.5, 15.5, 15.5, 3.5, 3.5], "-k")
-    plt.plot([27.5, 27.5, 15.5, 15.5, 27.5], 
-            [27.5, 15.5, 15.5, 27.5, 27.5], "-k")
-    plt.plot([-0.5, -0.5, 3.5, 3.5, -0.5], 
-            [-0.5, 3.5, 3.5, -0.5, -0.5], "w", linestyle=(0,(3,3)))
-    plt.plot([3.5, 3.5, 15.5, 15.5, 3.5], 
-            [3.5, 15.5, 15.5, 3.5, 3.5], "w", linestyle=(0,(3,3)))
-    plt.plot([27.5, 27.5, 15.5, 15.5, 27.5], 
-            [27.5, 15.5, 15.5, 27.5, 27.5], "w", linestyle=(0,(3,3)))
-
-    # add the CMS label
-    cmslabel(llabel="Private Work", com=14)
-
-    # save and show the figure
-    Path(directory).mkdir(parents=True, exist_ok=True)
-    savefig("%s/layerPairs.png" % (directory))
-    plt.close()
-
-    print("\nStatistics from layerPairs:")
-    print("Nrec / Ntot = %f / %f = %f" % (Nrec, Ntot, Nrec/Ntot))
-    print("Nrec (no skip) / Ntot = %f / %f = %f" % (NrecNoSkip, Ntot, NrecNoSkip/Ntot))
-    print("")
-
-# ------------------------------------------------------------------------------------------
-
-def plotDiscreteHist(ROOTfile, histname, directory="plots", num_events=None, x_label="", y_label="", x_lim=(None, None)):
-    if num_events is None:
-        num_events = 1
-        ylabel_suff = ""
-    else:
-        ylabel_suff = " / event"
-
-    
-    # load histograms
-    hTot = Hist(ROOTfile, "general/%s" % (histname), scale_for_values = 1/num_events)
-    hPass = Hist(ROOTfile, "general/pass_%s" % (histname), scale_for_values = 1/num_events)
-    
-    # create new figure
-    fig, ax = plt.subplots()
-    
-    # plot
-    y = hTot.values
-    x = (hTot.edges[1:] + hTot.edges[:-1])/2
-    xTot = x - (hTot.edges[1:]-hTot.edges[:-1]) / 6
-    xPass = x + (hTot.edges[1:]-hTot.edges[:-1]) / 6
-    
-    plt.bar(xTot, hTot.values, 1/3, color='darkblue', label="total")
-    plt.bar(xPass, hPass.values, 1/3, color='#5790fc', label="passing")
-    plt.legend()
-
-    # fix axes
-    plt.xticks(x, [(str(int(x_)) if (x_%1==0) else "") for x_ in x])
-    ax.xaxis.set_tick_params(which='minor',bottom=False,top=False)
-    ylabel(y_label + ylabel_suff)
-    xlabel(x_label)
-    ax.set_xlim(x_lim)
-    if "pT" in histname:
-        plt.xscale("log")
-    
-    # add the CMS label
-    cmslabel(llabel="Private Work", com=14)
-    
-    # save and show the figure
-    Path(directory).mkdir(parents=True, exist_ok=True)
-    savefig("%s/%s.png" % (directory, histname))
-    plt.close()
-
-# ------------------------------------------------------------------------------------------
-
-def plotEfficiency(ROOTfile, histname, directory="plots", x_label="", y_label=""):
-    
-    # load histograms
-    hist = Hist(ROOTfile, "general/%s" % (histname))
-    
-    # create new figure
-    fig, ax = plt.subplots()
-    
-    # plot    
-    hist.plot(marker="s")
-
-    # fix axes
-    ylabel(y_label)
-    xlabel(x_label)
-    plt.ylim(0,1)
-    if "pT" in histname:
-        plt.xscale("log")
-    
-    # add the CMS label
-    cmslabel(llabel="Private Work", com=14)
-    
-    # save and show the figure
-    Path(directory).mkdir(parents=True, exist_ok=True)
-    savefig("%s/%s.png" % (directory, histname))
-    plt.close()
-
 # ------------------------------------------------------------------------------------------
 
 # define function that performs the plotting of all cuts
 def makeGeneralPlots(DQMfile, DIR="plots", num_events=None):
 
-    DIR += "/general"
+    DIRgeneral = DIR + "/general"
+    DIRsimNtuplets = DIR + "/simNtuplets"
 
     # open the DQMfile
     ROOTFile = uproot.open(DQMfile)["DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimDoublets"]
 
     # plot the layerPairs
-    plotLayerPairs(ROOTFile, directory=DIR, num_events=num_events)
+    plotLayerPairs(ROOTFile, directory=DIRgeneral, num_events=num_events)
 
     # produce discrete distributions
     discreteDict = {
@@ -166,18 +39,38 @@ def makeGeneralPlots(DQMfile, DIR="plots", num_events=None):
     }
     for h in discreteDict.keys():
         p = discreteDict[h]
-        plotDiscreteHist(ROOTFile, h, directory=DIR, num_events=num_events, 
+        plotDiscreteHist(ROOTFile, h, directory=DIRgeneral, num_events=num_events, 
                          x_label=p["x_label"], y_label=p["y_label"], x_lim=p["x_lim"])
         
     
     # produce efficiency plots
     efficiencyDict = {
-        "efficiencyPerTP_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
-        "efficiencyPerTP_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
-        "efficiencyTP_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Efficiency for TrackingParticles \n(at least 2 passing and connected SimDoublets)"},
-        "efficiencyTP_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Efficiency for TrackingParticles \n(at least 2 passing and connected SimDoublets)"},
-        "efficiency_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Total fraction of SimDoublets passing all cuts"},
-        "efficiency_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Total fraction of SimDoublets passing all cuts"},
+        "general/efficiencyPerTP_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
+        "general/efficiencyPerTP_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
+        "general/efficiencyTP_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
+        "general/efficiencyTP_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
+        "general/efficiency_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Total fraction of SimDoublets passing all cuts"},
+        "general/efficiency_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Total fraction of SimDoublets passing all cuts"},
+    }
+    for h in efficiencyDict.keys():
+        p = efficiencyDict[h]
+        plotEfficiency(ROOTFile, h, directory=DIR, 
+                         x_label=p["x_label"], y_label=p["y_label"])
+    
+    # produce rate plots
+    ratesDict = {
+        "eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$"},
+        "pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]"}
+    }
+    for h in ratesDict.keys():
+        p = ratesDict[h]
+        plotSimNtuplets(ROOTFile, h, directory=DIRsimNtuplets, 
+                         x_label=p["x_label"])
+    
+    # produce efficiency plots (SimNtuplets)
+    efficiencyDict = {
+        "simNtuplets/alive_fracNumRecHits_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Average fractional number of RecHits in \nlongest surviving SimNtuplet \ncompared to the longest one"},
+        "simNtuplets/alive_fracNumRecHits_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Average fractional number of RecHits in \nlongest surviving SimNtuplet \ncompared to the longest one"},
     }
     for h in efficiencyDict.keys():
         p = efficiencyDict[h]
