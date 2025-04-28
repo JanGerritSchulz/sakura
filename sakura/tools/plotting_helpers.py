@@ -15,8 +15,8 @@ def setStyle(customized=True):
     if customized:
         plt.rcParams['legend.fancybox'] = True
         plt.rcParams['legend.frameon'] = True
-        plt.rcParams['xaxis.labellocation'] = "center"
-        plt.rcParams['yaxis.labellocation'] = "center"
+        plt.rcParams['xaxis.labellocation'] = "right"
+        plt.rcParams['yaxis.labellocation'] = "top"
         plt.rcParams['mathtext.default'] = "it"
         plt.rcParams['mathtext.fontset'] = 'cm'
         plt.rcParams['figure.figsize'] = (12, 9)
