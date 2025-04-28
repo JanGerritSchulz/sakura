@@ -7,6 +7,7 @@ from sakura.histograms.Hist import Hist
 from pathlib import Path
 import yaml
 from simplotter.dataconfig.layerPairs import simplePixelLayerPairs
+from simplotter.utils.utils import valToLatexStr
 
 CUTlist_vectors = ["cellMinz", "cellMaxz", "cellPhiCuts", "cellMaxr"]
 CUTlist_scalars = ["cellMinYSizeB1", "cellMinYSizeB2", 
@@ -15,11 +16,76 @@ CUTlist_scalars = ["cellMinYSizeB1", "cellMinYSizeB2",
            "dcaCutInnerTriplet", "dcaCutOuterTriplet"]
 
 
+# helper functions
+def findPassValuesEdges(values, edges, cutType, minVal, maxVal):
+    passEdges = edges.copy()
+    passValues = values.copy()
+
+    # set upper limits of edges and corresponding values
+    if (cutType=="max" or cutType=="both") & (passEdges[-1] > maxVal):
+        # if the max value lies within the bounds of the histogram
+        iMax = np.argmax(passEdges>=maxVal)
+        passEdges = np.append(passEdges[:iMax], [min(maxVal,passEdges[iMax])]) 
+        passValues = passValues[:iMax]
+
+    # set lower limits of edges and corresponding values
+    if (cutType=="min" or cutType=="both") & (passEdges[0] < minVal):
+        # if the min value lies within the bounds of the histogram
+        iMin = np.argmax(passEdges>minVal) - 1
+        passEdges = np.append([max(minVal,passEdges[iMin])], passEdges[iMin+1:]) 
+        passValues = passValues[iMin:]
+        
+    return passValues, passEdges
+
+
+def labelCutValues(cutType, val, CATheta_addition=""):
+    valStr = valToLatexStr(val)
+    return r"$\text{cut}_\text{" + cutType + "} = " + CATheta_addition + valStr + "$"
+
+
+def plotCutValues(ax, cutType, minVal, maxVal, CATheta_addition=""):
+    # get xlim() and ylim()
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    ymid = (ymax + ymin) / 2
+    if ax.get_xscale() == "log":
+        factor_ = 10 ** (np.log10(xmax / xmin) / 20 *0.75)
+        dx_min = xmin * factor_
+        dx_max = xmax / factor_
+    else:
+        dx_min = dx_max = (xmax-xmin) / 20 *0.75
+
+    # case "min"
+    if cutType=="min" or cutType=="both":
+        cutLabel = labelCutValues("min", minVal)
+        # if the value is in the plotting range
+        if (minVal <= xmax) & (minVal >= xmin):
+            ax.axvline(minVal, color="darkblue", linestyle="--", label=cutLabel)
+        # if the value is out of bounce
+        elif (minVal > xmax):
+            ax.scatter(xmax-dx_max, ymid, c='darkblue',marker=r'$\rightarrow$',s=200, label=cutLabel )
+        elif (minVal < xmin):
+            ax.scatter(xmin+dx_min, ymid, c='darkblue',marker=r'$\leftarrow$',s=200, label=cutLabel )
+    
+    # case "max"
+    if cutType=="max" or cutType=="both":
+        cutLabel = labelCutValues("max", maxVal, CATheta_addition=CATheta_addition)
+        # if the value is in the plotting range
+        if (maxVal <= xmax) & (maxVal >= xmin):
+            ax.axvline(maxVal, color="darkblue", linestyle="--", label=cutLabel)
+        # if the value is out of bounce
+        elif (maxVal > xmax):
+            ax.scatter(xmax-dx_max, ymid, c='darkblue',marker=r'$\rightarrow$',s=200, label=cutLabel )
+        elif (maxVal < xmin):
+            ax.scatter(xmin+dx_min, ymid, c='darkblue',marker=r'$\leftarrow$',s=200, label=cutLabel )
+
+    ax.set_xlim(xmin, xmax)
+
 # ------------------------------------------------------------------------------------------
 # main function for plotting
 # ------------------------------------------------------------------------------------------
 
-def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCutMax=np.inf, innerLayer=None, outerLayer=None, x_label="", directory="plots", num_events=None):
+def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCutMax=np.inf, innerLayer=None, outerLayer=None, x_label="", directory="plots", num_events=None, cmsconfig=None):
     if num_events is None:
         num_events = 1
         ylabel_suff = ""
@@ -39,37 +105,25 @@ def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCu
     fig, ax = plt.subplots()
     
     # plot
-    y = hTot.values
     x = hTot.edges
-    icutMax = np.argmax(x>cellCutMax) if (cellCutType=="max" or cellCutType=="both") else None
-    icutMin = np.argmin(x<cellCutMin) if (cellCutType=="min" or cellCutType=="both") else None
+    passValues, passEdges = findPassValuesEdges(hTot.values, x, cellCutType, cellCutMin, cellCutMax)
     
-    if (cellCutType=="max"):
-        plt.stairs(y[icutMin:icutMax],np.append(x[icutMin:icutMax], [cellCutMax]), fill=True, color='#5790fc', alpha=0.5, label="doublets passing this cut")
-    elif (cellCutType=="min"):
-        plt.stairs(y[icutMin-1:icutMax],np.append([cellCutMin], x[icutMin:icutMax]), fill=True, color='#5790fc', alpha=0.5, label="doublets passing this cut")
-    elif (cellCutType=="both"):
-        plt.stairs(y[icutMin-1:icutMax],np.append(np.append([cellCutMin], x[icutMin:icutMax]), [cellCutMax]), fill=True, color='#5790fc', alpha=0.5, label="doublets passing this cut")
+    plt.stairs(passValues, passEdges, fill=True, color='#5790fc', alpha=0.5, label="doublets passing this cut")
     plt.stairs(hPass.values, x, fill=True, color='#5790fc', label="doublets passing all cuts")
-    plt.stairs(y, x, color="darkblue", label="all doublets")
-    #plt.stairs(y[icut-1:icut],x[icut-1:icut+1], color="darkblue", alpha=0.3, fill=True)
-    
-    if (cellCutType=="max"):
-        plt.axvline(cellCutMax, color="darkblue", linestyle="--", label="cut value")
-    elif (cellCutType=="min"):
-        plt.axvline(cellCutMin, color="darkblue", linestyle="--", label="cut value")
-    elif (cellCutType=="both"):
-        plt.axvline(cellCutMax, color="darkblue", linestyle="--")
-        plt.axvline(cellCutMin, color="darkblue", linestyle="--", label="cut values")
+    plt.stairs(hTot.values, x, color="darkblue", label="all doublets")
     
     # fix axes
     ylabel("Number of SimDoublets" + ylabel_suff)
     xlabel(x_label)
     if "pT" in histname:
-        plt.xscale("log")
+        ax.set_xscale("log")
     
+    # plot the cut values
+    plotCutValues(ax, cellCutType, cellCutMin, cellCutMax)
+
     # add the CMS label
-    cmslabel(llabel="Private Work", com=14)
+    if cmsconfig is not None:
+        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
     
     # save and show the figure
     if innerLayer is not None:
@@ -84,7 +138,7 @@ def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCu
 
 # ------------------------------------------------------------------------------------------
 
-def plotConnectionCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCutMax=np.inf, innerLayer=None, outerLayer=None, x_label="", y_label_add="", directory="plots", num_events=None):
+def plotConnectionCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCutMax=np.inf, innerLayer=None, outerLayer=None, x_label="", y_label_add="", directory="plots", num_events=None, cmsconfig=None):
     if num_events is None:
         num_events = 1
         ylabel_suff = ""
@@ -103,51 +157,39 @@ def plotConnectionCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.i
     # create new figure
     fig, ax = plt.subplots()
 
-    legend_title = None
+    cutLabel_addition = ""
     if "CATheta" in histname:
-        legend_title = "cut at CATheta / ptmin\n= %.4f / %.2f = %.4f" % (cellCutMax[0], cellCutMax[1], cellCutMax[0] / cellCutMax[1])
+        cutLabel_addition = r"\text{CATheta/ptmin} = " + valToLatexStr(cellCutMax[0]) +" / " + valToLatexStr(cellCutMax[1]) + "="
         cellCutMax = cellCutMax[0] / cellCutMax[1]
     
     # plot
-    y = hTot.values
     x = hTot.edges
-    icutMax = np.argmax(x>cellCutMax) if (cellCutType=="max" or cellCutType=="both") else None
-    icutMin = np.argmin(x<cellCutMin) if (cellCutType=="min" or cellCutType=="both") else None
+    passValues, passEdges = findPassValuesEdges(hTot.values, x, cellCutType, cellCutMin, cellCutMax)
     
-    if (cellCutType=="max"):
-        plt.stairs(y[icutMin:icutMax],np.append(x[icutMin:icutMax], [cellCutMax]), fill=True, color='#5790fc', alpha=0.5, label="connections passing this cut")
-    elif (cellCutType=="min"):
-        plt.stairs(y[icutMin-1:icutMax],np.append([cellCutMin], x[icutMin:icutMax]), fill=True, color='#5790fc', alpha=0.5, label="connections passing this cut")
-    elif (cellCutType=="both"):
-        plt.stairs(y[icutMin-1:icutMax],np.append(np.append([cellCutMin], x[icutMin:icutMax]), [cellCutMax]), fill=True, color='#5790fc', alpha=0.5, label="connections passing this cut")
+    plt.stairs(passValues, passEdges, fill=True, color='#5790fc', alpha=0.5, label="connections passing this cut")
     plt.stairs(hPass.values, x, fill=True, color='#5790fc', label="connections passing all cuts")
-    plt.stairs(y, x, color="darkblue", label="all connections")
-    #plt.stairs(y[icut-1:icut],x[icut-1:icut+1], color="darkblue", alpha=0.3, fill=True)
-    
-    if (cellCutType=="max"):
-        plt.axvline(cellCutMax, color="darkblue", linestyle="--", label="cut value")
-    elif (cellCutType=="min"):
-        plt.axvline(cellCutMin, color="darkblue", linestyle="--", label="cut value")
-    elif (cellCutType=="both"):
-        plt.axvline(cellCutMax, color="darkblue", linestyle="--")
-        plt.axvline(cellCutMin, color="darkblue", linestyle="--", label="cut values")
+    plt.stairs(hTot.values, x, color="darkblue", label="all connections")    
     
     # fix axes
     ylabel("Number of SimDoublet connections" + y_label_add + ylabel_suff)
     xlabel(x_label)
     if "hardCurv" not in histname:
         plt.xscale("log")
+
+    # plot the cut values
+    plotCutValues(ax, cellCutType, cellCutMin, cellCutMax, CATheta_addition=cutLabel_addition)
     
     # add the CMS label
-    cmslabel(llabel="Private Work", com=14)
+    if cmsconfig is not None:
+        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
     
     # save and show the figure
     if innerLayer is not None:
-        plt.legend(title = "Layer pair (%i,%i)" % (innerLayer, outerLayer) + " " + legend_title)
+        plt.legend(title = "Layer pair (%i,%i)" % (innerLayer, outerLayer))
         Path("%s/connectionCuts/%s" % (directory, histname)).mkdir(parents=True, exist_ok=True)
         savefig("%s/connectionCuts/%s/%s.png" % (directory, histname, subfolder[:-1]))
     else:
-        plt.legend(title=legend_title)
+        plt.legend()
         Path("%s/connectionCuts" % (directory)).mkdir(parents=True, exist_ok=True)
         savefig("%s/connectionCuts/%s.png" % (directory, histname))
     plt.close()
@@ -187,7 +229,7 @@ def getCutParameters(CUTfile="cutParameters/currentCuts.yml"):
 
 
 # define function that performs the plotting of all cuts
-def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", cut=None, num_events=None):
+def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", cut=None, num_events=None, cmsconfig=None, layerPairs=None):
 
     DIR += "/cutParameters"
 
@@ -202,20 +244,20 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
         for histname in GlobalCutParameters.keys():
             cutType, cutMin, cutMax, label = GlobalCutParameters[histname]
             plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, x_label=label, 
-                             directory=DIR, num_events=num_events)
+                             directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
 
         for histname in LayerPairCutParameters.keys():
             cutType, cutMinArr, cutMaxArr, label = LayerPairCutParameters[histname]
-            for i, pair in enumerate(simplePixelLayerPairs):
+            for i, pair in enumerate(layerPairs):
                 cutMin = -np.inf if cutMinArr is None else cutMinArr[i]
                 cutMax = cutMaxArr[i]
                 plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
-                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events)
+                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
         
         for histname in ConnectionCutParameters.keys():
             cutType, cutMin, cutMax, label, label_add = ConnectionCutParameters[histname]
             plotConnectionCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
-                                x_label=label, y_label_add=label_add, directory=DIR, num_events=num_events)
+                                x_label=label, y_label_add=label_add, directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
     
     # otherwise just plot the given cut parameter
     else:
@@ -223,22 +265,22 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
             histname = cut
             cutType, cutMin, cutMax, label = GlobalCutParameters[histname]
             plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, x_label=label, 
-                             directory=DIR, num_events=num_events)
+                             directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
         
         elif cut in LayerPairCutParameters.keys():
             histname = cut
             cutType, cutMinArr, cutMaxArr, label = LayerPairCutParameters[histname]
-            for i, pair in enumerate(simplePixelLayerPairs):
+            for i, pair in enumerate(layerPairs):
                 cutMin = -np.inf if cutMinArr is None else cutMinArr[i]
                 cutMax = cutMaxArr[i]
                 plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
-                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events)
+                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
         
         elif cut in ConnectionCutParameters.keys():
             histname = cut
             cutType, cutMin, cutMax, label, label_add = ConnectionCutParameters[histname]
             plotConnectionCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax,
-                                       x_label=label, y_label_add=label_add, directory=DIR, num_events=num_events)
+                                       x_label=label, y_label_add=label_add, directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
         
         else:
             raise ValueError('Invalid parameter `cut`! Specify the cut parameter you want to plot from the list below or `None` to plot all of them.'
@@ -261,6 +303,9 @@ parser.add_argument("-c", "--cut", default=None, help="cut parameter to be plott
 parser.add_argument("-n", "--nevents", default=-1, type=int,  help="Number of events (used for scaling to numbers per event if given)")
 parser.add_argument("-a", "--analyzer", type=str, default="simDoubletsAnalyzerPhase2", help="Name of the analyzer module "+
                     "(needs to be given if the config file is cmssw config, default `simDoubletsAnalyzerPhase2`)")
+parser.add_argument("--llabel", default="Private Work", help="label next to CMS in plot")
+parser.add_argument("--rlabel", default=None, help="label displayed in upper right of plot")
+parser.add_argument("--com", default=14, help="center of mass displayed in plots")
 
 def main():
     print("="*30)
@@ -276,7 +321,9 @@ def main():
     # if the given config is yaml, it should already contain the cut values in the correct format
     if args.config[-4:] == ".yml":
         print(" * provided config file for cuts (yaml):", args.config)
+        print(" * use default layer pairs")
         CUTfile = args.config
+        layerPairs = simplePixelLayerPairs
         neventsFromConfig = -1
 
     # elif python format, assume it is a cmssw config file
@@ -289,7 +336,7 @@ def main():
 
         # in this case write your own yml based on the given config
         import importlib.util
-        import sys
+        #import sys
         spec = importlib.util.spec_from_file_location("process", args.config)
         config_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(config_module)
@@ -303,6 +350,8 @@ def main():
         } | {
             cutname: list(getattr(simDoubletsAnalyzer, cutname)) for cutname in CUTlist_vectors
         }
+
+        layerPairs = np.reshape(list(getattr(simDoubletsAnalyzer, "layerPairs")), (-1, 2))
 
         neventsFromConfig = config_module.process.maxEvents.input.value()
 
@@ -339,9 +388,14 @@ def main():
         print(" * plot only the distribution for the cut:", args.cut)
 
     print("\n")        
+
+    cmsconfig = {"llabel" : args.llabel,
+                 "rlabel" : args.rlabel,
+                 "com" : args.com}
     # produce the plots
     makeCutPlots(args.DQMfile, CUTfile=CUTfile,
-                 DIR=args.directory, cut=args.cut, num_events=nevents)
+                 DIR=args.directory, cut=args.cut, num_events=nevents,
+                cmsconfig=cmsconfig, layerPairs=layerPairs)
 
     print("="*30)
     print("  End makeCutPlots()")

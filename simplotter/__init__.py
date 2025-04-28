@@ -7,3 +7,4 @@
 
 from simplotter.makeCutPlots import makeCutPlots
 from simplotter.makeGeneralPlots import makeGeneralPlots
+from simplotter.makeGeneralComparisonPlots import makeGeneralComparisonPlots
