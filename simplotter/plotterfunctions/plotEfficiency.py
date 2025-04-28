@@ -5,16 +5,25 @@ from sakura.histograms.Hist import Hist
 from pathlib import Path
 
 
-def plotEfficiency(ROOTfile, histname, directory="plots", x_label="", y_label="", ):
-    
-    # load histograms
-    hist = Hist(ROOTfile, "%s" % (histname))
+def plotEfficiency(ROOTfile, histname, directory="plots", x_label="", y_label="", labels=None, cmsconfig=None):
     
     # create new figure
     fig, ax = plt.subplots()
     
-    # plot    
-    hist.plot(marker="s")
+    # if multiple ROOT files are handed, loop over them
+    if isinstance(ROOTfile, list):
+        for ROOTfile_, label_ in zip(ROOTfile, labels):
+            # load histograms
+            hist = Hist(ROOTfile_, histname)
+            # plot    
+            hist.plot(ax=ax, marker="s", label=label_)
+        ax.legend()
+
+    else:
+        # load histograms
+        hist = Hist(ROOTfile, "%s" % (histname))
+        # plot    
+        hist.plot(ax=ax, marker="s")
 
     # fix axes
     ylabel(y_label)
@@ -24,7 +33,8 @@ def plotEfficiency(ROOTfile, histname, directory="plots", x_label="", y_label=""
         plt.xscale("log")
     
     # add the CMS label
-    cmslabel(llabel="Private Work", com=14)
+    if cmsconfig is not None:
+        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
     
     # save and show the figure
     Path(directory).mkdir(parents=True, exist_ok=True)

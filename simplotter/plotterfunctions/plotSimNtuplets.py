@@ -5,20 +5,25 @@ from sakura.histograms.Hist import Hist
 from pathlib import Path
 
 
-def plotSimNtuplets(ROOTfile, x_quantity="eta", directory="plots", x_label=""):
+def plotSimNtuplets(ROOTfile, x_quantity="eta", directory="plots", x_label="", cmsconfig=None):
+
+    colorPalette1 = ["#C0FB2D", "#1B2021", "#016FB9", "#61E8E1", "#88958D", "sun yellow", "magenta", "#DEDEDE"]
+    colorPalette2 = ["#648FFF", "#785EF0", "#DC267F", "#FE6100", "#FFB000", "sun yellow", "magenta", "#DEDEDE"]
+
+    colorPalette = colorPalette1
     
     # load histograms
     categories = {
-        "Alive" : {"label" : "alive", "color" : "#C0FB2D"},
-        "MissingLayerPair" : {"label" : "is missing a layer pair", "color" : "#1B2021"},
-        "KilledDoublets" : {"label" : "has killed doublets", "color" : "#016FB9"},
-        "KilledConnections" : {"label" : "has killed connections", "color" : "#61E8E1"},
-        "TooShort" : {"label" : "has 3+ RecHits but is shorter\nthan reco threshold", "color" : "#88958D"},
-        "UndefDoubletCuts" : {"label" : "has undef doublet cuts", "color" : "sun yellow"},
-        "UndefConnectionCuts" : {"label" : "has undef connection cuts", "color" : "magenta"},
+        "Alive" : {"label" : "alive", "color" : colorPalette[0]},
+        "MissingLayerPair" : {"label" : "is missing a layer pair", "color" : colorPalette[1]},
+        "KilledDoublets" : {"label" : "has killed doublets", "color" : colorPalette[2]},
+        "KilledConnections" : {"label" : "has killed connections", "color" : colorPalette[3]},
+        "TooShort" : {"label" : "has 3+ RecHits but is shorter\nthan reco threshold", "color" : colorPalette[4]},
+        "UndefDoubletCuts" : {"label" : "has undef doublet cuts", "color" : colorPalette[5]},
+        "UndefConnectionCuts" : {"label" : "has undef connection cuts", "color" : colorPalette[6]},
     }
     hists = {
-        c : Hist(ROOTfile, "simNtuplets/rate%s_vs_%s" % (c, x_quantity)) for c in categories
+        c : Hist(ROOTfile, "simNtuplets/frac%s_vs_%s" % (c, x_quantity)) for c in categories
         }
     
     # create new figure
@@ -32,20 +37,27 @@ def plotSimNtuplets(ROOTfile, x_quantity="eta", directory="plots", x_label=""):
                 continue
         ax.stairs(hists[c].values + y_baseline, hists[c].edges, baseline=y_baseline, 
                   fill=True, label=categories[c]["label"],
-            color=categories[c]["color"])
+                  color=categories[c]["color"])
         y_baseline += hists[c].values
     
-    plt.legend(reverse=True, loc='center left', bbox_to_anchor = (1.03, 0.5))
+    ax.stairs(np.ones_like(hists[list(categories.keys())[0]].values), 
+              hists[list(categories.keys())[0]].edges, baseline=y_baseline, 
+                label="has 2 or less RecHits",
+                edgecolor=colorPalette[7], hatch='//')
+    
+    plt.legend(title="Status of TP's longest SimNtuplet",
+               reverse=True, loc='center left', bbox_to_anchor = (1.03, 0.5))
 
     # fix axes
-    ylabel("Rates of longest SimNtuplets\nof TrackingParticles")
+    ylabel("Fractions of TrackingParticles")
     xlabel(x_label)
     plt.ylim(0,1)
     if "pT" in x_quantity:
         plt.xscale("log")
     
     # add the CMS label
-    cmslabel(llabel="Private Work", com=14)
+    if cmsconfig is not None:
+        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
     
     # save and show the figure
     Path(directory).mkdir(parents=True, exist_ok=True)
