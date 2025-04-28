@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import numpy as np
 from sakura.dictionaries.hist_dictionary import HIST_NAME
 from sakura.tools.plotting_helpers import xlabel, ylabel
@@ -44,18 +45,21 @@ class Hist2D:
     def plot(self, ax=None, plot_zeros_special=False, **kwargs):
         self.plot_hist2d(ax, plot_zeros_special=plot_zeros_special, **kwargs)
 
-    def plot_hist2d(self, ax=None, plot_zeros_special=False, **kwargs):
+    def plot_hist2d(self, ax=None, plot_zeros_special=False, log=True, **kwargs):
         if ax is None:
             ax = plt.gca()
         # if plot_zeros_special == True, move zeros to negative numbers and fix vmin=0
         if plot_zeros_special:
-            cax = ax.matshow(self.values.T - (self.values.T == 0), extent=[self.edges_x[0], self.edges_x[-1], 
-                                        self.edges_y[0], self.edges_y[-1]], 
-                                        aspect='auto', origin="lower", vmin =0, **kwargs)
+            if log:
+                vmin = np.ma.masked_equal(self.values.T, 0.0, copy=False).min() * 0.999
+                vmax = np.max(self.values.T)
+                cax = ax.pcolormesh(self.edges_x, self.edges_y, self.values.T, 
+                                    norm=LogNorm(vmin=vmin, vmax=vmax), **kwargs)
+            else:
+                cax = ax.pcolormesh(self.edges_x, self.edges_y, self.values.T - (self.values.T == 0), 
+                                        vmin =0, **kwargs)
         else:
-            cax = ax.matshow(self.values.T, extent=[self.edges_x[0], self.edges_x[-1], 
-                                        self.edges_y[0], self.edges_y[-1]], 
-                                        aspect='auto', origin="lower", **kwargs)
+            cax = ax.pcolormesh(self.edges_x, self.edges_y, self.values.T, **kwargs)
         xlabel(self.bin_quantity_x, ax)
         ylabel(self.bin_quantity_y, ax)
         ax.xaxis.set_ticks_position('bottom')
