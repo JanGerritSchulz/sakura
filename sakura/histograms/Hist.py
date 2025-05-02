@@ -14,35 +14,36 @@ class Hist:
     # uncertainties of the counts
     errors = 0
     
-    def __init__(self, ROOTbranch, count_quantity, bin_quantity=None, scale_for_values=None):
-        # check if count and bin quantities are given seperately
-        #  - if not: take count_quantity as name of the histogram
-        #  - if yes: construct the name of the histogram from both
-        if bin_quantity is None:
-            hist_name = count_quantity
-        else:
-            hist_name = HIST_NAME(count_quantity, bin_quantity)
+    def __init__(self, ROOTbranch=None, count_quantity=None, bin_quantity=None, scale_for_values=None):
+        if ROOTbranch is not None:
+            # check if count and bin quantities are given seperately
+            #  - if not: take count_quantity as name of the histogram
+            #  - if yes: construct the name of the histogram from both
+            if bin_quantity is None:
+                hist_name = count_quantity
+            else:
+                hist_name = HIST_NAME(count_quantity, bin_quantity)
 
-        # load the histogram
-        TH1 = ROOTbranch[hist_name]
+            # load the histogram
+            TH1 = ROOTbranch[hist_name]
 
-        # fill the histogram information
-        self.edges = TH1.axis().edges()
-        self.values = TH1.values()
-        self.errors = TH1.errors()
+            # fill the histogram information
+            self.edges = TH1.axis().edges()
+            self.values = TH1.values()
+            self.errors = TH1.errors()
 
-        # remember the bin and count quantities
-        self.bin_quantity = bin_quantity
-        self.count_quantity = count_quantity
-        
-        # bin_label is a list of strings if the xticks are labeled
-        # else, it is None
-        self.bin_labels = TH1.axis("x").labels()
-        
-        # if a scale factor for the values are given (e.g. 1/N_events) apply it to values and errors
-        if scale_for_values is not None:
-            self.values *= scale_for_values
-            self.errors *= scale_for_values
+            # remember the bin and count quantities
+            self.bin_quantity = bin_quantity
+            self.count_quantity = count_quantity
+            
+            # bin_label is a list of strings if the xticks are labeled
+            # else, it is None
+            self.bin_labels = TH1.axis("x").labels()
+            
+            # if a scale factor for the values are given (e.g. 1/N_events) apply it to values and errors
+            if scale_for_values is not None:
+                self.values *= scale_for_values
+                self.errors *= scale_for_values
 
     def plot(self, ax=None, **kwargs):
         # if bin_labels is not None, assume the prefered plot type is an x-labeled hist
