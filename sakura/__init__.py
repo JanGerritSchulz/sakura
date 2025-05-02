@@ -13,6 +13,9 @@ from sakura.dictionaries.hist_dictionary import HIST_NAME
 # import plotting tools
 from sakura.tools.plotting_helpers import setStyle, xlabel, ylabel, cmslabel, savefig
 
+# import helpers
+from sakura.tools.getRatioHist import getRatioHist
+
 # import Histogram classes
 from sakura.histograms.Hist import Hist
 from sakura.histograms.Hist2D import Hist2D
