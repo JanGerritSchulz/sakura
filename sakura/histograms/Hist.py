@@ -48,33 +48,36 @@ class Hist:
     def plot(self, ax=None, **kwargs):
         # if bin_labels is not None, assume the prefered plot type is an x-labeled hist
         if self.bin_labels is not None:
-            self.plot_xlabeled_hist(ax, **kwargs)
+            return self.plot_xlabeled_hist(ax, **kwargs)
             
         # else plot an errorbar hist
         else:
-            self.plot_errorbar_hist(ax, **kwargs)
+            return self.plot_errorbar_hist(ax, **kwargs)
 
     def plot_errorbar_hist(self, ax=None, **kwargs):
         if ax is None:
             ax = plt.gca()
-        ax.errorbar((self.edges[1:] + self.edges[:-1])/2, self.values, yerr=self.errors, xerr=(self.edges[1:] - self.edges[:-1])/2, linestyle="", **kwargs)
+        handle = ax.errorbar((self.edges[1:] + self.edges[:-1])/2, self.values, yerr=self.errors, xerr=(self.edges[1:] - self.edges[:-1])/2, linestyle="", **kwargs)
         ylabel(self.count_quantity, ax)
         xlabel(self.bin_quantity, ax)
+        return handle
 
     def plot_xlabeled_hist(self, ax=None, **kwargs):
         if ax is None:
             ax = plt.gca()
         xtick_positions = np.arange(len(self.bin_labels))
-        ax.bar(xtick_positions, self.values, yerr=self.errors, **kwargs)
+        handle = ax.bar(xtick_positions, self.values, yerr=self.errors, **kwargs)
         ax.set_xticks(xtick_positions, labels=self.bin_labels, rotation=30, ha='right')
         ylabel(self.count_quantity, ax)
+        return handle
     
     def plot_bar_hist(self, ax=None, **kwargs):
         if ax is None:
             ax = plt.gca()
-        ax.bar((self.edges[1:] + self.edges[:-1])/2, self.values, **kwargs)
+        handle = ax.bar((self.edges[1:] + self.edges[:-1])/2, self.values, **kwargs)
         ylabel(self.count_quantity, ax)
         xlabel(self.bin_quantity, ax)
+        return handle
 
     def get_value_from_label(self, label):
         if self.bin_labels is None:
