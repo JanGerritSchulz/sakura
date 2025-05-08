@@ -11,7 +11,7 @@ from sakura.dictionaries.label_dictionary import LABEL_DICT
 from sakura.dictionaries.hist_dictionary import HIST_NAME
 
 # import plotting tools
-from sakura.tools.plotting_helpers import setStyle, xlabel, ylabel, cmslabel, savefig
+from sakura.tools.plotting_helpers import setStyle, xlabel, ylabel, cmslabel, savefig, lumilabel
 
 # import helpers
 from sakura.tools.getRatioHist import getRatioHist
