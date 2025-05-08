@@ -59,6 +59,11 @@ def cmslabel(**kwargs):
     """    
     hep.cms.label(**kwargs)
 
+def lumilabel(**kwargs):
+    """Wrapper for the lumi label in upper right in plots. Reason for this is to avoid having to import hep each and every time.
+    """    
+    hep.cms.lumitext(**kwargs)
+
 
 def savefig(filename, dpi=165, bbox_inches="tight", **kwargs):
     """Wrapper for the savefig function of matplotlib with better default settings for dpi and bbox_inches.
