@@ -35,11 +35,16 @@ def plotPdgId(ROOTfile, directory="plots", num_events=None, cmsconfig=None):
         yPass = np.append(yPass, hPass.values[i])
         x_labels.append(pdgIdDict[pdgid])
 
-        # error calculation with eff
-        result = binomtest(k=int(yPass[-1]*num_events), n=int(yTot[-1]*num_events))
-        yEff.append(result.statistic)
-        yEffErrLow.append(result.proportion_ci(0.683).low)
-        yEffErrUp.append(result.proportion_ci(0.683).high)
+        if yTot[-1]>0:
+            # error calculation with eff
+            result = binomtest(k=round(yPass[-1]*num_events), n=round(yTot[-1]*num_events))
+            yEff.append(result.statistic)
+            yEffErrLow.append(result.proportion_ci(0.683).low)
+            yEffErrUp.append(result.proportion_ci(0.683).high)
+        else:
+            yEff.append(0)
+            yEffErrLow.append(0)
+            yEffErrUp.append(0)
     
 
     # create new figure

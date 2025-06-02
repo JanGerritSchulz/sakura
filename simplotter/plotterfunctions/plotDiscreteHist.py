@@ -26,7 +26,7 @@ def plotDiscreteHist(ROOTfile, histname, directory="plots", num_events=None, x_l
     for yPass, yTot in zip(hPass.values, hTot.values):
         if yTot>0:
             # error calculation with eff
-            result = binomtest(k=int(yPass*num_events), n=int(yTot*num_events))
+            result = binomtest(k=round(yPass*num_events), n=round(yTot*num_events))
             yEff.append(result.statistic)
             yEffErrLow.append(result.proportion_ci(0.683).low)
             yEffErrUp.append(result.proportion_ci(0.683).high)
