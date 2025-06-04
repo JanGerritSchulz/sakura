@@ -14,11 +14,11 @@ def plotSimNtuplets(ROOTfile, x_quantity="eta", directory="plots", x_label="", c
     
     # load histograms
     categories = {
-        "Alive" : {"label" : "alive", "color" : colorPalette[0]},
-        "MissingLayerPair" : {"label" : "is missing a layer pair", "color" : colorPalette[1]},
-        "KilledDoublets" : {"label" : "has killed doublets", "color" : colorPalette[2]},
+        "Alive" : {"label" : "built", "color" : colorPalette[0]},
         "KilledConnections" : {"label" : "has killed connections", "color" : colorPalette[3]},
-        "TooShort" : {"label" : "has 3+ RecHits but is shorter\nthan reco threshold", "color" : colorPalette[4]},
+        "KilledDoublets" : {"label" : "has killed doublets", "color" : colorPalette[2]},
+        "MissingLayerPair" : {"label" : "is missing a layer pair", "color" : colorPalette[1]},
+        "TooShort" : {"label" : "shorter than reco threshold", "color" : colorPalette[4]},
         "UndefDoubletCuts" : {"label" : "has undef doublet cuts", "color" : colorPalette[5]},
         "UndefConnectionCuts" : {"label" : "has undef connection cuts", "color" : colorPalette[6]},
     }
@@ -35,7 +35,12 @@ def plotSimNtuplets(ROOTfile, x_quantity="eta", directory="plots", x_label="", c
         if (c == "UndefDoubletCuts" or c == "UndefConnectionCuts"):
             if np.sum(hists[c].values) == 0:
                 continue
-        ax.stairs(hists[c].values + y_baseline, hists[c].edges, baseline=y_baseline, 
+        if c == "Alive":
+            ax.stairs(hists[c].values + y_baseline, hists[c].edges, baseline=y_baseline, 
+                  fill=True, label=categories[c]["label"],
+                  fc=categories[c]["color"], edgecolor="#648B03", linewidth=0.7)
+        else:
+            ax.stairs(hists[c].values + y_baseline, hists[c].edges, baseline=y_baseline, 
                   fill=True, label=categories[c]["label"],
                   color=categories[c]["color"])
         y_baseline += hists[c].values
