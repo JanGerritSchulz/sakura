@@ -28,5 +28,15 @@ def markLayersXY(ax, boxes=True, layerPairs=None):
 def markLayersY(ax):
     ax.axhline(3.5, linestyle="-", color="k")
     ax.axhline(15.5, linestyle="-", color="k")
+    ax.axhline(27.5, linestyle="-", color="k")
     ax.axhline(3.5,  color="w", linestyle=(0,(3,3)))
     ax.axhline(15.5, color="w", linestyle=(0,(3,3)))
+    ax.axhline(27.5, color="w", linestyle=(0,(3,3)))
+
+def markLayersX(ax):
+    ax.axvline(3.5, linestyle="-", color="k")
+    ax.axvline(15.5, linestyle="-", color="k")
+    ax.axvline(27.5, linestyle="-", color="k")
+    ax.axvline(3.5,  color="w", linestyle=(0,(3,3)))
+    ax.axvline(15.5, color="w", linestyle=(0,(3,3)))
+    ax.axvline(27.5, color="w", linestyle=(0,(3,3)))

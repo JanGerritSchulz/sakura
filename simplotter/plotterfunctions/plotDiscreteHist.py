@@ -71,6 +71,5 @@ def plotDiscreteHist(ROOTfile, histname, directory="plots", num_events=None, x_l
         cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"], ax=ax)
     
     # save and show the figure
-    Path(directory).mkdir(parents=True, exist_ok=True)
     savefig("%s/%s.png" % (directory, histname))
     plt.close()

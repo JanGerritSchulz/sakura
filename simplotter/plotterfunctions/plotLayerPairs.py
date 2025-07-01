@@ -7,15 +7,15 @@ from pathlib import Path
 from simplotter.dataconfig.layerPairs import simplePixelLayerPairs, NonSkippingLayerPairs
 from simplotter.utils.markLayers import markLayersXY
 
-def plotLayerPairs(ROOTfile, directory="plots", num_events=None, cmsconfig=None, layerPairs=simplePixelLayerPairs):
+def plotLayerPairs(ROOTfile, histname, directory="plots", num_events=None, x_label="", y_label="", z_label="", cmsconfig=None, layerPairs=simplePixelLayerPairs, plotname=None):
     if num_events is None:
         num_events = 1
-        ylabel_suff = ""
+        zlabel_suff = ""
     else:
-        ylabel_suff = " / event"
+        zlabel_suff = " / event"
     
     # load histograms
-    h = Hist2D(ROOTfile["general"], "layerPairs", "Outer layer ID", "Inner layer ID", scale_for_values = 1/num_events)
+    h = Hist2D(ROOTfile, histname, y_label, x_label, scale_for_values = 1/num_events)
     
     # create new figure
     fig, ax = plt.subplots()
@@ -24,10 +24,9 @@ def plotLayerPairs(ROOTfile, directory="plots", num_events=None, cmsconfig=None,
     cmap.set_under('w')
     cax = h.plot(ax, True, log=True, cmap=cmap)
     fig.colorbar(mpl.cm.ScalarMappable(norm=mpl.colors.LogNorm(vmin=np.ma.masked_equal(h.values, 0.0, copy=False).min(), 
-                                                                vmax=np.max(h.values)), 
-                                    cmap=cmap), ax=ax, extend='min',
-                label="Number of SimDoublets" + ylabel_suff)
-    ylabel("Outer layer ID")
+                                                                vmax=np.max(h.values)), cmap=cmap), 
+                ax=ax, extend='min', label=z_label + zlabel_suff)
+    ylabel(y_label)
 
     # draw the boxes to mark barrel and endcaps plus the dots for used layerPairs
     markLayersXY(ax, layerPairs=layerPairs)
@@ -47,11 +46,13 @@ def plotLayerPairs(ROOTfile, directory="plots", num_events=None, cmsconfig=None,
         cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
 
     # save and show the figure
-    Path(directory).mkdir(parents=True, exist_ok=True)
-    savefig("%s/layerPairs.png" % (directory))
+    if plotname is None:
+        plotname = histname.split("/")[-1] 
+    savefig("%s/%s.png" % (directory, plotname))
+
     plt.close()
 
-    print("\nStatistics from layerPairs:")
+    print("\nStatistics from %s:" % histname)
     print("Nrec / Ntot = %f / %f = %f" % (Nrec, Ntot, Nrec/Ntot))
     print("Nrec (no skip) / Ntot = %f / %f = %f" % (NrecNoSkip, Ntot, NrecNoSkip/Ntot))
     print("")

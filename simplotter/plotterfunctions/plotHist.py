@@ -31,8 +31,11 @@ def plotHist(ROOTfile, histname, directory="plots", num_events=None, x_label="",
     ylabel(y_label + ylabel_suff)
     xlabel(x_label)
 
-    if ("pT" in histname) or ("Pt" in histname):
+    if ("pt" in histname) or ("Pt" in histname):
         plt.xscale("log")
+
+    if "vs_dxy" in histname:
+        plt.yscale("log")
     
     # add the CMS label
     if cmsconfig is not None:

@@ -14,8 +14,8 @@ def plotPdgId(ROOTfile, directory="plots", num_events=None, cmsconfig=None):
     else:
         ylabel_suff = " / event"
 
-    histname = "general/numTPVsPdgId"
-    pass_histname = "general/pass_numTPVsPdgId"
+    histname = "general/num_vs_pdgId"
+    pass_histname = "general/pass_num_vs_pdgId"
     
     # load histograms
     hTot = Hist(ROOTfile, histname, scale_for_values = 1/num_events)

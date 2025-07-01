@@ -23,59 +23,88 @@ from simplotter.plotterfunctions.plotPdgId import plotPdgId
 # ------------------------------------------------------------------------------------------
 
 # define function that performs the plotting of all cuts
-def makeGeneralPlots(DQMfile, DIR="plots", num_events=None, cmsconfig=None, layerPairs=simplePixelLayerPairs):
+def makeGeneralPlots(DQMfile, DIR="plots", num_events=None, cmsconfig=None, layerPairs=simplePixelLayerPairs, startingPairs=np.array([])):
 
     DIRgeneral = DIR + "/general"
-    DIRsimNtuplets = DIR + "/simNtuplets"
+    DIRsimNtuplets = DIR + "/SimNtuplets"
 
     # open the DQMfile
-    ROOTFile = uproot.open(DQMfile)["DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimDoublets"]
+    ROOTFile = uproot.open(DQMfile)["DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimPixelTracks"]
 
     # -------------------------------------
     #  general plots
     # -------------------------------------
+    print("-"*30)
+    print(" General plots")
+    print("-"*30)
 
+    print("make LayerPair plots...")
     # plot the layerPairs
-    plotLayerPairs(ROOTFile, directory=DIRgeneral, num_events=num_events, cmsconfig=cmsconfig, layerPairs=layerPairs)
+    plotLayerPairs(ROOTFile, "SimDoublets/layerPairs", 
+                   y_label="Outer layer ID", x_label="Inner layer ID", z_label="#SimDoublets",
+                   directory=DIR + "/SimDoublets", num_events=num_events, cmsconfig=cmsconfig, layerPairs=layerPairs)
+    plotLayerPairs(ROOTFile, "SimNtuplets/longest/firstVsSecondLayer", 
+                   y_label="Second layer ID", x_label="First layer ID", z_label="#TrackingParticles",
+                   directory=DIRgeneral, num_events=num_events, cmsconfig=cmsconfig, layerPairs=startingPairs, plotname="startingPairs")
+
 
     # produce discrete distributions
+    print("make discrete plots...")
+
     discreteDict = {
-        "general/numSimDoubletsPerTrackingParticle" : {"x_label" : "#SimDoublets / TrackingParticle", "y_label" : "#TrackingParticles", "x_lim": (-0.5, 10.5)},
-        "general/numLayersPerTrackingParticle" : {"x_label" : "#(hit layers / TrackingParticle)", "y_label" : "#TrackingParticles", "x_lim": (-0.5, 10.5)},
-        "general/numSkippedLayers" : {"x_label" : "#(skipped layers)", "y_label" : "#SimDoublets", "x_lim": (-1.5, 5.5)},
+        "general/numSimDoublets" : {"x_label" : "#SimDoublets / TrackingParticle", "y_label" : "#TrackingParticles", "x_lim": (-0.5, 10.5)},
+        "general/numLayers" : {"x_label" : "#(hit layers) / TrackingParticle", "y_label" : "#TrackingParticles", "x_lim": (-0.5, 10.5)},
+        "general/numSkippedLayers" : {"x_label" : "#(skipped layers) / TrackingParticle", "y_label" : "#TrackingParticles", "x_lim": (-1.5, 5.5)},
+        "SimDoublets/numSkippedLayers" : {"x_label" : "#(skipped layers) / SimDoublet", "y_label" : "#SimDoublets", "x_lim": (-1.5, 5.5)},
 }
     for h in discreteDict.keys():
         p = discreteDict[h]
         plotDiscreteHist(ROOTFile, h, directory=DIR, num_events=num_events, 
                          x_label=p["x_label"], y_label=p["y_label"], x_lim=p["x_lim"], cmsconfig=cmsconfig)
     
+
     # plot distributions
+    print("make histogram plots...")
     histDict = {
-        "general/numTPVsEta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Number of TrackingParticles"},
-        "general/numTPVsPt" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Number of TrackingParticles"},
+        "general/num_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "#TrackingParticles"},
+        "general/num_vs_pt" : {"x_label" : r"TrackingParticle $p_\text{T}$ [GeV]", "y_label" : "#TrackingParticles"},
+        "general/num_vs_phi" : {"x_label" : r"TrackingParticle $\phi$ [rad]", "y_label" : "#TrackingParticles"},
+        "general/num_vs_dxy" : {"x_label" : r"TrackingParticle transverse IP to beamspot $d_{xy}$ [cm]", "y_label" : "#TrackingParticles"},
+        "general/num_vs_dz" : {"x_label" : r"TrackingParticle longitudinal IP to beamspot $\text{d} z$ [cm]", "y_label" : "#TrackingParticles"},
     }
     for h in histDict.keys():
         p = histDict[h]
         plotHist(ROOTFile, h, directory=DIR, num_events=num_events, 
                          x_label=p["x_label"], y_label=p["y_label"], cmsconfig=cmsconfig)
     
+
     # produce efficiency plots
+    print("make efficiency plots...")
+
     efficiencyDict = {
-        "general/efficiencyPerTP_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
-        "general/efficiencyPerTP_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
-        "general/efficiencyTP_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
-        "general/efficiencyTP_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
-        "general/efficiency_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Total fraction of SimDoublets passing all cuts"},
-        "general/efficiency_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Total fraction of SimDoublets passing all cuts"},
+        "general/effSimDoubletsPerTP_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
+        "general/effSimDoubletsPerTP_vs_pt" : {"x_label" : r"TrackingParticle $p_\text{T}$ [GeV]", "y_label" : "Average fraction of SimDoublets \nper TrackingParticle passing all cuts"},
+        "general/eff_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
+        "general/eff_vs_pt" : {"x_label" : r"TrackingParticle $p_\text{T}$ [GeV]", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
+        "general/eff_vs_phi" : {"x_label" : r"TrackingParticle $\phi$ [rad]", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
+        "general/eff_vs_dxy" : {"x_label" : r"TrackingParticle transverse IP to beamspot $d_{xy}$ [cm]", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
+        "general/eff_vs_dz" : {"x_label" : r"TrackingParticle longitudinal IP to beamspot $\text{d} z$ [cm]", "y_label" : "Efficiency for TrackingParticles \n(having an alive SimNtuplet)"},
+        "SimDoublets/eff_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "Total fraction of SimDoublets passing all cuts"},
+        "SimDoublets/eff_vs_pt" : {"x_label" : r"TrackingParticle $p_\text{T}$ [GeV]", "y_label" : "Total fraction of SimDoublets passing all cuts"},
+        "general/effConfigLimit_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "Maximum efficiency possible\nbased on layerPairs, startingPairs\nand minNumLayers"},
+        "general/effConfigLimit_vs_pt" : {"x_label" : r"TrackingParticle $p_\text{T}$ [GeV]", "y_label" : "Maximum efficiency possible\nbased on layerPairs, startingPairs\nand minHitsPerNtuplet"},
     }
     for h in efficiencyDict.keys():
         p = efficiencyDict[h]
         plotEfficiency(ROOTFile, h, directory=DIR, 
                          x_label=p["x_label"], y_label=p["y_label"], cmsconfig=cmsconfig)
     
+
     # produce 2D efficiency plots
+    print("make 2D efficiency plots...")
+
     efficiency2DDict = {
-        "general/efficiency_vs_layerPair" : {"x_label" : "Inner layer ID", "y_label" : "Outer layer ID", "z_label":"Total fraction of SimDoublets passing all cuts", "x_layer":True, "y_layer":True},
+        "SimDoublets/eff_vs_layerPair" : {"x_label" : "Inner layer ID", "y_label" : "Outer layer ID", "z_label":"Total fraction of SimDoublets passing all cuts", "x_layer":True, "y_layer":True},
     }
     for h in efficiency2DDict.keys():
         p = efficiency2DDict[h]
@@ -83,14 +112,17 @@ def makeGeneralPlots(DQMfile, DIR="plots", num_events=None, cmsconfig=None, laye
                          x_label=p["x_label"], y_label=p["y_label"], z_label=p["z_label"], x_layer=p["x_layer"], y_layer=p["y_layer"], cmsconfig=cmsconfig)
     
     # produce rate plots
+    print("make rate plots...")
+
     ratesDict = {
-        "eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$"},
-        "pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]"}
+        "eta" : {"x_label" : "TrackingParticle $\eta$"},
+        "pt" : {"x_label" : r"TrackingParticle $p_\text{T}$ [GeV]"}
     }
-    for h in ratesDict.keys():
-        p = ratesDict[h]
-        plotSimNtuplets(ROOTFile, h, directory=DIRsimNtuplets, 
-                         x_label=p["x_label"], cmsconfig=cmsconfig)
+    for ntuplet in ["longest", "mostAlive"]:
+        for h in ratesDict.keys():
+            p = ratesDict[h]
+            plotSimNtuplets(ROOTFile, ntuplet, h, directory=DIRsimNtuplets, 
+                            x_label=p["x_label"], cmsconfig=cmsconfig)
         
     
     # plot pdgId
@@ -100,22 +132,30 @@ def makeGeneralPlots(DQMfile, DIR="plots", num_events=None, cmsconfig=None, laye
     # -------------------------------------
     #  SimNtuplet plots
     # -------------------------------------
+    print("-"*30)
+    print(" SimNtuplet plots")
+    print("-"*30)
 
     # produce discrete distributions
+    print("make discrete plots...")
+
     discreteDict = {
-        "simNtuplets/firstLayerId" : {"x_label" : "First layer ID of longest SimNtuplet", "y_label" : "#TrackingParticles"},
-        "simNtuplets/lastLayerId" : {"x_label" : "Last layer ID of longest SimNtuplet", "y_label" : "#TrackingParticles"},
-        "simNtuplets/numRecHits" : {"x_label" : "#RecHits in longest SimNtuplet", "y_label" : "#TrackingParticles"},
+        "SimNtuplets/longest/firstLayerId" : {"x_label" : "First layer ID of longest SimNtuplet", "y_label" : "#TrackingParticles"},
+        "SimNtuplets/longest/lastLayerId" : {"x_label" : "Last layer ID of longest SimNtuplet", "y_label" : "#TrackingParticles"},
+        "SimNtuplets/longest/numRecHits" : {"x_label" : "#RecHits in longest SimNtuplet", "y_label" : "#TrackingParticles"},
     }
     for h in discreteDict.keys():
         p = discreteDict[h]
         plotDiscreteHist(ROOTFile, h, directory=DIR, num_events=num_events, 
                          x_label=p["x_label"], y_label=p["y_label"], cmsconfig=cmsconfig)
 
+
     # produce efficiency plots (SimNtuplets)
+    print("make efficiency plots...")
+
     efficiencyDict = {
-        "simNtuplets/alive_fracNumRecHits_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "Average fractional number of RecHits in \nlongest surviving SimNtuplet \ncompared to the longest one"},
-        "simNtuplets/alive_fracNumRecHits_vs_pT" : {"x_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "y_label" : "Average fractional number of RecHits in \nlongest surviving SimNtuplet \ncompared to the longest one"},
+        "SimNtuplets/mostAlive/fracNumRecHits_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "Average fractional number of RecHits in \nlongest surviving SimNtuplet \ncompared to the longest one"},
+        "SimNtuplets/mostAlive/fracNumRecHits_vs_pt" : {"x_label" : r"TrackingParticle $p_\text{T}$ [GeV]", "y_label" : "Average fractional number of RecHits in \nlongest surviving SimNtuplet \ncompared to the longest one"},
     }
     for h in efficiencyDict.keys():
         p = efficiencyDict[h]
@@ -124,24 +164,31 @@ def makeGeneralPlots(DQMfile, DIR="plots", num_events=None, cmsconfig=None, laye
         
             
     # produce 2D efficiency plots
+    print("make 2D efficiency plots...")
+
     efficiency2DDict = {
-        "simNtuplets/layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Longest SimNtuplet of TPs", "x_layer":True, "y_layer":True},
-        "simNtuplets/alive_layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Longest alive SimNtuplet of TPs", "x_layer":True, "y_layer":True},
-        "simNtuplets/fracAlive_layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing reconstructed", "x_layer":True, "y_layer":True},
-        "simNtuplets/fracLost_layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing lost in reconstruction", "x_layer":True, "y_layer":True},
-        "simNtuplets/firstLayerVsEta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "First layer ID", "z_label":"Longest SimNtuplet of TPs", "x_layer":False, "y_layer":True},
-        "simNtuplets/alive_firstLayerVsEta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "First layer ID", "z_label":"Longest alive SimNtuplet of TPs", "x_layer":False, "y_layer":True},
-        "simNtuplets/fracAlive_firstLayer_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "First layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing reconstructed", "x_layer":False, "y_layer":True},
-        "simNtuplets/fracLost_firstLayer_vs_eta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "First layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing lost in reconstruction", "x_layer":False, "y_layer":True},
-        "general/efficiencyTP_vs_eta_phi" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "TrackingParticle azimuthal angle $\phi$ [rad]", "z_label":"Efficiency for TrackingParticles \n(having an alive SimNtuplet)", "x_layer":False, "y_layer":False},
-        "general/numLayersVsEtaPt" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : r"TrackingParticle transverse momentum $p_\text{T}$ [GeV]", "z_label":r"$\langle$#layers$\rangle$ hit by TrackingParticle", "x_layer":False, "y_layer":False},
-        "general/numLayersVsEta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : r"#layers hit by TrackingParticle", "z_label":"#TrackingParticles", "x_layer":False, "y_layer":False},
-        "general/numSkippedLayersVsEta" : {"x_label" : "TrackingParticle pseudorapidity $\eta$", "y_label" : "#(skipped layers)", "z_label":"#TrackingParticles", "x_layer":False, "y_layer":False},
+        "SimNtuplets/longest/layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Longest SimNtuplet of TPs", "x_layer":True, "y_layer":True},
+        "SimNtuplets/mostAlive/pass_layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Longest alive SimNtuplet of TPs", "x_layer":True, "y_layer":True},
+        "SimNtuplets/longest/fracAlive_layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing reconstructed", "x_layer":True, "y_layer":True},
+        "SimNtuplets/longest/fracLost_layerSpan" : {"x_label" : "First layer ID", "y_label" : "Last layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing lost in reconstruction", "x_layer":True, "y_layer":True},
+        "SimNtuplets/longest/firstLayer_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "First layer ID", "z_label":"Longest SimNtuplet of TPs", "x_layer":False, "y_layer":True},
+        "SimNtuplets/mostAlive/pass_firstLayer_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "First layer ID", "z_label":"Longest alive SimNtuplet of TPs", "x_layer":False, "y_layer":True},
+        "SimNtuplets/longest/fracAlive_firstLayer_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "First layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing reconstructed", "x_layer":False, "y_layer":True},
+        "SimNtuplets/longest/fracLost_firstLayer_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "First layer ID", "z_label":"Fraction of longest SimNtuplet of TPs\nbeing lost in reconstruction", "x_layer":False, "y_layer":True},
+        "general/eff_vs_etaPhi" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "TrackingParticle azimuthal angle $\phi$ [rad]", "z_label":"Efficiency for TrackingParticles \n(having an alive SimNtuplet)", "x_layer":False, "y_layer":False},
+        "general/numLayers_vs_etaPt" : {"x_label" : "TrackingParticle $\eta$", "y_label" : r"TrackingParticle $p_\text{T}$ [GeV]", "z_label":r"$\langle$#layers$\rangle$ hit by TrackingParticle", "x_layer":False, "y_layer":False},
+        "general/numLayers_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : r"#layers hit by TrackingParticle", "z_label":"#TrackingParticles", "x_layer":False, "y_layer":False},
+        "general/numRecHits_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : r"#hits per TrackingParticle", "z_label":"#TrackingParticles", "x_layer":False, "y_layer":False},
+        "general/numRecHits_vs_layer" : {"x_label" : "Layer Id", "y_label" : r"#hits per TP and layer", "z_label":"#TrackingParticles", "x_layer":True, "y_layer":False, "plot_ymean":True, "ignore_zero":True},
+        "general/numSkippedLayers_vs_eta" : {"x_label" : "TrackingParticle $\eta$", "y_label" : "#(skipped layers)", "z_label":"#TrackingParticles", "x_layer":False, "y_layer":False},
     }
     for h in efficiency2DDict.keys():
         p = efficiency2DDict[h]
+        plot_ymean = p["plot_ymean"] if "plot_ymean" in p else False
+        ignore_zero = p["ignore_zero"] if "ignore_zero" in p else False
         plotEfficiency2D(ROOTFile, h, directory=DIR, cmsconfig=cmsconfig, 
-                         x_label=p["x_label"], y_label=p["y_label"], z_label=p["z_label"], x_layer=p["x_layer"], y_layer=p["y_layer"])
+                         x_label=p["x_label"], y_label=p["y_label"], z_label=p["z_label"], x_layer=p["x_layer"], y_layer=p["y_layer"],
+                        plot_ymean=plot_ymean, ignore_zero=ignore_zero)
 
 
 
@@ -193,6 +240,7 @@ def main():
         if simDoubletsAnalyzer is None:
             raise ValueError("Invalid parameter `analyzer`! In the given CMSSW config, no module with the name `%s` was found" % args.analyzer)
         layerPairs = np.reshape(list(getattr(simDoubletsAnalyzer, "layerPairs")), (-1, 2))
+        startingPairs = layerPairs[list(getattr(simDoubletsAnalyzer, "startingPairs"))]
     
     # else, something's wrong
     else:
@@ -220,7 +268,7 @@ def main():
                  "rlabel" : args.rlabel,
                  "com" : args.com}
     # produce the plots
-    makeGeneralPlots(args.DQMfile, DIR=args.directory, num_events=nevents, cmsconfig=cmsconfig, layerPairs=layerPairs)
+    makeGeneralPlots(args.DQMfile, DIR=args.directory, num_events=nevents, cmsconfig=cmsconfig, layerPairs=layerPairs, startingPairs=startingPairs)
 
     print("="*30)
     print("  End makeGeneralPlots()")

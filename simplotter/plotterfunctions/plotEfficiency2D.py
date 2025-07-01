@@ -4,10 +4,10 @@ import numpy as np
 from sakura.tools.plotting_helpers import ylabel, cmslabel, savefig
 from sakura.histograms.Hist2D import Hist2D
 from pathlib import Path
-from simplotter.utils.markLayers import markLayersXY
-from simplotter.utils.markLayers import markLayersY
+from simplotter.utils.markLayers import markLayersXY, markLayersY, markLayersX
 
-def plotEfficiency2D(ROOTfile, histname, directory="plots", x_label="", y_label="", z_label="Efficiency", x_layer=False, y_layer=False, cmsconfig=None):
+def plotEfficiency2D(ROOTfile, histname, directory="plots", x_label="", y_label="", z_label="Efficiency", 
+                     x_layer=False, y_layer=False, cmsconfig=None, plot_ymean=False, ignore_zero=False):
     
     # load histograms
     h = Hist2D(ROOTfile, histname, y_label, x_label)
@@ -23,11 +23,24 @@ def plotEfficiency2D(ROOTfile, histname, directory="plots", x_label="", y_label=
                                     cmap=cmap), ax=ax, extend='min', label=z_label)
     ylabel(y_label)
 
+    if plot_ymean:
+        yvals = (h.edges_y[:-1] + h.edges_y[1:]) / 2
+        zvals = h.values
+        if ignore_zero:
+            mask = yvals!=0
+            yvals = yvals[mask]
+            zvals = zvals[:, mask]
+        means = np.sum(yvals*zvals, axis=1) / np.sum(zvals, axis=1)
+        ax.stairs(means, h.edges_x, color="k", label="mean")
+        ax.legend()
+
     # mark boxes of layers from barrel/endcap
     if x_layer & y_layer:
         markLayersXY(ax)
     elif y_layer:
         markLayersY(ax)
+    elif x_layer:
+        markLayersX(ax)
     
     if "GeV" in x_label:
         ax.set_xscale("log")

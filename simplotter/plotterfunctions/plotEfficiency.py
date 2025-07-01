@@ -29,7 +29,7 @@ def plotEfficiency(ROOTfile, histname, directory="plots", x_label="", y_label=""
     ylabel(y_label)
     xlabel(x_label)
     plt.ylim(0,1)
-    if "pT" in histname:
+    if "vs_pt" in histname:
         plt.xscale("log")
     
     # add the CMS label

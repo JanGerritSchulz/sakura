@@ -84,7 +84,7 @@ def plotCutValues(ax, cutType, minVal, maxVal, CATheta_addition=""):
 # main function for plotting
 # ------------------------------------------------------------------------------------------
 
-def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCutMax=np.inf, innerLayer=None, outerLayer=None, x_label="", directory="plots", num_events=None, cmsconfig=None):
+def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCutMax=np.inf, innerLayer=None, outerLayer=None, x_label="", directory="plots", num_events=None, cmsconfig=None, limit_xrange=False):
     if num_events is None:
         num_events = 1
         ylabel_suff = ""
@@ -97,8 +97,8 @@ def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCu
         subfolder = "global/"
     
     # load histograms
-    hTot = Hist(ROOTfile, "cutParameters/" + subfolder + histname, scale_for_values = 1/num_events)
-    hPass = Hist(ROOTfile, "cutParameters/%spass_%s" % (subfolder,histname), scale_for_values = 1/num_events)
+    hTot = Hist(ROOTfile, "CAParameters/doubletCuts/" + subfolder + histname, scale_for_values = 1/num_events)
+    hPass = Hist(ROOTfile, "CAParameters/doubletCuts/%spass_%s" % (subfolder,histname), scale_for_values = 1/num_events)
     
     # create new figure
     fig, ax = plt.subplots()
@@ -116,6 +116,19 @@ def plotCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.inf, cellCu
     xlabel(x_label)
     if "pT" in histname:
         ax.set_xscale("log")
+    
+    # limit the x range if wanted
+    if limit_xrange & (np.sum(hTot.values)>0):
+        mask = hTot.values > 0
+        xmin = x[:-1][mask][0]
+        xmax = x[1:][mask][-1]
+        if ax.get_xscale() == "log":
+            factor_ = 10 ** (np.log10(xmax / xmin) / 20 *0.75)
+            dx_min = xmin * factor_
+            dx_max = xmax / factor_
+        else:
+            dx_min = dx_max = (xmax-xmin) / 20 *0.75
+        plt.xlim(xmin-dx_min, xmax+dx_max)
     
     # plot the cut values
     plotCutValues(ax, cellCutType, cellCutMin, cellCutMax)
@@ -151,8 +164,8 @@ def plotConnectionCutParameter(ROOTfile, histname, cellCutType, cellCutMin=-np.i
         subfolder = "connectionCuts/"
     
     # load histograms
-    hTot = Hist(ROOTfile, "cutParameters/" + subfolder + histname, scale_for_values = 1/num_events)
-    hPass = Hist(ROOTfile, "cutParameters/%spass_%s" % (subfolder,histname), scale_for_values = 1/num_events)
+    hTot = Hist(ROOTfile, "CAParameters/" + subfolder + histname, scale_for_values = 1/num_events)
+    hPass = Hist(ROOTfile, "CAParameters/%spass_%s" % (subfolder,histname), scale_for_values = 1/num_events)
     
     # create new figure
     fig, ax = plt.subplots()
@@ -232,10 +245,10 @@ def getCutParameters(CUTfile="cutParameters/currentCuts.yml"):
 # define function that performs the plotting of all cuts
 def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", cut=None, num_events=None, cmsconfig=None, layerPairs=None):
 
-    DIR += "/cutParameters"
+    DIR += "/CAParameters"
 
     # open the DQMfile
-    ROOTFile = uproot.open(DQMfile)["DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimDoublets"]
+    ROOTFile = uproot.open(DQMfile)["DQMData/Run 1/Tracking/Run summary/TrackingMCTruth/SimPixelTracks"]
 
     # get cut parameters and values
     GlobalCutParameters, LayerPairCutParameters, ConnectionCutParameters, LayerConnectionCutParameters = getCutParameters(CUTfile)
@@ -253,7 +266,7 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
                 cutMin = -np.inf if cutMinArr is None else cutMinArr[i]
                 cutMax = cutMaxArr[i]
                 plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
-                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
+                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events, cmsconfig=cmsconfig, limit_xrange=histname=="innerZ")
         
         for histname in ConnectionCutParameters.keys():
             cutType, cutMin, cutMax, label, label_add = ConnectionCutParameters[histname]
@@ -283,7 +296,7 @@ def makeCutPlots(DQMfile, CUTfile="cutParameters/currentCuts.yml", DIR="plots", 
                 cutMin = -np.inf if cutMinArr is None else cutMinArr[i]
                 cutMax = cutMaxArr[i]
                 plotCutParameter(ROOTFile, histname, cutType, cellCutMin=cutMin, cellCutMax=cutMax, 
-                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events, cmsconfig=cmsconfig)
+                                innerLayer=pair[0], outerLayer=pair[1], x_label=label, directory=DIR, num_events=num_events, cmsconfig=cmsconfig, limit_xrange=histname=="innerZ")
         
         elif cut in ConnectionCutParameters.keys():
             histname = cut
