@@ -2,6 +2,7 @@
 import mplhep as hep
 import matplotlib.pyplot as plt
 from sakura.dictionaries.label_dictionary import LABEL_DICT
+from pathlib import Path
 
 
 # setting the default plotting style based on mplhep
@@ -73,4 +74,10 @@ def savefig(filename, dpi=165, bbox_inches="tight", **kwargs):
         dpi (float, optional): The resolution in dots per inch. If 'figure', use the figure's dpi value.. Defaults to 300.
         bbox_inches (str, optional): Bounding box in inches: only the given portion of the figure is saved. If 'tight', try to figure out the tight bbox of the figure. Defaults to "tight".
     """    
+    # if the filename contains a path, check if the directory exists and if not create it
+    if "/" in filename:
+        directory = "/".join(filename.split("/")[:-1])
+        Path(directory).mkdir(parents=True, exist_ok=True)
+    
+    # save the plot
     plt.savefig(filename, dpi=dpi, bbox_inches=bbox_inches, **kwargs)
