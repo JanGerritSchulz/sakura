@@ -44,6 +44,9 @@ Then, you have a couple of optional arguments summarized in the following table.
 | `-c` / `--cut`             | Cut parameter to be plotted (by default, all cut parameters are plotted).                                                                                                                                                                                                                         |
 | `-a` / `--analyzer` | If the provided config is a CMSSW config, the function needs to know the name of the SimDoubletsAnalyzer module to read the cut values correctly. You therefore should pass the name here. Default is `SimDoubletsAnalyzerPhase2`.                                                                |
 | `-n` / `--nevents`  | Number of events (used for scaling to numbers per event if provided). The function will try to determine the number of events on its own first by looking at the DQM file and then the config file. If nothing is found there, take the given value. Defaults to `-1` meaning no scaling applied. |
+| `--llabel`  | Label next to CMS in plot. Defaults to `"Private Work"`. |
+| `--rlabel`  | Label displayed in upper right of plot. Defaults to `None`. |
+| `--com`  | Center of mass (in TeV) displayed in plots if no `rlabel` is given. Defaults to `14`. |
 
 #### Example use case
 An example application could look like this:
@@ -60,15 +63,23 @@ This command line function plots some general distributions for the true SimDoub
 makeGeneralPlots --help
 ```
 
-You have to provide one **required argument**: 
-- positional argument: **DQM file**. It expects the path to the DQM ROOT file which was produced in the harvesting step and contains all the histograms.
+You have to provide two **required arguments**: 
+- first positional argument: **DQM file**. It expects the path to the DQM ROOT file which was produced in the harvesting step and contains all the histograms.
+- second positional argument: **config file**. This file contains the information about which were the configured cut values for the doublet cuts. This can either be:
+    - a yaml file (`.yml`) with all parameters inside. An example is given in [`currentCuts.yml`](./simplotter/dataconfig/currentCuts.yml).
+    - the CMSSW config file you used for the validation step directly (`.py`). The function will read the config, extract the parameters and creates a corresponding yaml file on its own (in the given `--DIR` directory). *Note that if you pass the CMSSW config, you need to be in a `cmsenv` otherwise python cannot interpret the file. Also, if the SimDoubletsAnalyzer in that config is named differently from `simDoubletsAnalyzerPhase2`, you will have to provide the correct name in the argument `--analyzer`.*
 
 Then, you have a couple of optional arguments summarized in the following table.
 
 | Option              | Meaning                                                                                                                                                                                                                                                                                           |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-d` / `--directory`      | Directory to save the plots in.                                                                                                                                                                                                                                                                   |
-| `-n` / `--nevents`  | Number of events (used for scaling to numbers per event if provided). The function will try to determine the number of events on its own first by looking at the DQM file. If nothing is found there, take the given value. Defaults to `-1` meaning no scaling applied. |
+| `-c` / `--cut`             | Cut parameter to be plotted (by default, all cut parameters are plotted).                                                                                                                                                                                                                         |
+| `-a` / `--analyzer` | If the provided config is a CMSSW config, the function needs to know the name of the SimDoubletsAnalyzer module to read the cut values correctly. You therefore should pass the name here. Default is `SimDoubletsAnalyzerPhase2`.                                                                |
+| `-n` / `--nevents`  | Number of events (used for scaling to numbers per event if provided). The function will try to determine the number of events on its own first by looking at the DQM file and then the config file. If nothing is found there, take the given value. Defaults to `-1` meaning no scaling applied. |
+| `--llabel`  | Label next to CMS in plot. Defaults to `"Private Work"`. |
+| `--rlabel`  | Label displayed in upper right of plot. Defaults to `None`. |
+| `--com`  | Center of mass (in TeV) displayed in plots if no `rlabel` is given. Defaults to `14`. |
 
 #### Example use case
 An example application could look like this:
