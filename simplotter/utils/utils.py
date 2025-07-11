@@ -58,3 +58,29 @@ def valToLatexStr(val):
         valStr += r"\times 10^{" + str(exponent) + r"}" 
 
     return valStr
+
+
+def limitNone(a,b, func):
+    if (a is None) and (b is None):
+        return None
+    elif (a is None):
+        return b
+    elif (b is None):
+        return a
+    else:
+        return func(a,b)
+
+
+
+def limitXNone(xLim1, xLim2):
+    return (limitNone(xLim1[0], xLim2[0], min), limitNone(xLim1[1], xLim2[1], max))
+
+
+def toRGBA(hex, alpha=1):
+    """
+    Takes a color in hex format "#XXXXXX" and transforms it to the rgb format with alpha.
+    E.g.:
+    #FF0000 + alpha=0.5 -> (1, 0, 0, 0.5)
+    """
+    r,g,b = tuple(int(hex[i:i+2], 16)/255 for i in (1, 3, 5))
+    return (r,g,b,alpha)

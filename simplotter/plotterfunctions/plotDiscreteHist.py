@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from scipy.stats import binomtest
-from sakura.tools.plotting_helpers import xlabel, ylabel, cmslabel, savefig
-from sakura.histograms.Hist import Hist
+from simplotter.utils.plotttools import cmslabel, savefig
+from hist import Hist
 from pathlib import Path
 
 
