@@ -1,14 +1,15 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from sakura.tools.plotting_helpers import xlabel, ylabel, cmslabel, savefig
-from sakura.histograms.Hist import Hist
-from pathlib import Path
+import matplotlib.pyplot as plt
+from simplotter.utils.histtools import getHist
+from simplotter.utils.plotttools import cmslabel, savefig
 
 
-def plotSimNtuplets(ROOTfile, ntuplet, x_quantity="eta", directory="plots", x_label="", cmsconfig=None):
+def plotSimNtuplets(rootFile, plotConfig, directory="plots", cmsConfig=None, saveas="png"):
 
-    colorPalette1 = ["#C0FB2D", "#1B2021", "#016FB9", "#61E8E1", "#336346", "#88958D", "sun yellow", "magenta", "#DEDEDE"]
-    colorPalette2 = ["#648FFF", "#785EF0", "#DC267F", "#FE6100", "#FFB000", "#FFB000", "sun yellow", "magenta", "#DEDEDE"]
+    colorPalette1 = ["#C0FB2D", "#1B2021", "#016FB9", "#61E8E1", "#336346", "#88958D", "#ff00ff", "#ff00ff", "#DEDEDE"]
+    colorPalette2 = ["#648FFF", "#785EF0", "#DC267F", "#FE6100", "#FFB000", "#FFB000", "#ff00ff", "#ff00ff", "#DEDEDE"]
+
+    xQuantity = "eta" if "eta" in plotConfig.xLabel else "pt"
 
     colorPalette = colorPalette1
     
@@ -24,48 +25,48 @@ def plotSimNtuplets(ROOTfile, ntuplet, x_quantity="eta", directory="plots", x_la
         "UndefConnectionCuts" : {"label" : "has undef connection cuts", "color" : colorPalette[7]},
     }
     hists = {
-        c : Hist(ROOTfile, "SimNtuplets/%s/frac%s_vs_%s" % (ntuplet, c, x_quantity)) for c in categories
+        c : getHist(rootFile, "SimPixelTracks/SimNtuplets/%s/frac%s_vs_%s" % (plotConfig.histname, c, xQuantity)) for c in categories
         }
     
     # create new figure
     fig, ax = plt.subplots()
     
     # plot    
-    y_baseline = np.zeros_like(hists[list(categories.keys())[0]].values)
+    y_baseline = np.zeros_like(hists[list(categories.keys())[0]].values())
+    edges = hists[list(categories.keys())[0]].axes.edges[0]
     for c in categories.keys():
         if (c == "UndefDoubletCuts" or c == "UndefConnectionCuts"):
-            if np.sum(hists[c].values) == 0:
+            if np.sum(hists[c].values()) == 0:
                 continue
         if c == "Alive":
-            ax.stairs(hists[c].values + y_baseline, hists[c].edges, baseline=y_baseline, 
+            ax.stairs(hists[c].values() + y_baseline, edges, baseline=y_baseline, 
                   fill=True, label=categories[c]["label"],
                   fc=categories[c]["color"], edgecolor="#648B03", linewidth=0.7)
         else:
-            ax.stairs(hists[c].values + y_baseline, hists[c].edges, baseline=y_baseline, 
+            ax.stairs(hists[c].values() + y_baseline, edges, baseline=y_baseline, 
                   fill=True, label=categories[c]["label"],
                   color=categories[c]["color"])
-        y_baseline += hists[c].values
+        y_baseline += hists[c].values()
     
-    ax.stairs(np.ones_like(hists[list(categories.keys())[0]].values), 
-              hists[list(categories.keys())[0]].edges, baseline=y_baseline, 
+    ax.stairs(np.ones_like(hists[list(categories.keys())[0]].values()), 
+              edges, baseline=y_baseline, 
                 label="has 2 or less RecHits",
                 edgecolor=colorPalette[8], hatch='//')
     
-    plt.legend(title="Status of TP's %s SimNtuplet" % ("longest" if ntuplet=="longest" else "most alive"),
+    ax.legend(title="Status of TP's %s SimNtuplet" % ("longest" if plotConfig.histname=="longest" else "most alive"),
                reverse=True, loc='center left', bbox_to_anchor = (1.03, 0.5))
 
     # fix axes
-    ylabel("Fractions of TrackingParticles")
-    xlabel(x_label)
-    plt.ylim(0,1)
-    if "pt" in x_quantity:
-        plt.xscale("log")
+    ax.set_ylabel("Fractions of TrackingParticles")
+    ax.set_xlabel(plotConfig.xLabel)
+    ax.set_ylim(0,1)
+    if plotConfig.isLogX:
+        ax.set_xscale("log")
     
     # add the CMS label
-    if cmsconfig is not None:
-        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
+    if cmsConfig is not None:
+        cmslabel(ax=ax, llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"])
     
     # save and show the figure
-    Path(directory).mkdir(parents=True, exist_ok=True)
-    savefig("%s/%s/simNtupletsRate_vs_%s.png" % (directory, ntuplet, x_quantity))
+    savefig("%s/%s.%s" % (directory, plotConfig.plotname, saveas))
     plt.close()

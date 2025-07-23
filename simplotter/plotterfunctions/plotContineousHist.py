@@ -1,4 +1,3 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from simplotter.utils.histtools import getHist, findXLimits
@@ -6,9 +5,9 @@ from simplotter.utils.plotttools import Colors
 from simplotter.utils.utils import limitXNone, toRGBA
 from simplotter.plotterfunctions.plotRatio import plotRatioEfficiency
 
-def plotDiscreteHistSim(rootFile, plotConfig, ax=None, axRatio=None, nEvents=None, plotReco=True):
+def plotContineousHistSim(rootFile, plotConfig, ax=None, axRatio=None, nEvents=None):
     """
-    Plot a given discrete 1D histogram of sim objects with given plotConfig.
+    Plot a given contineous 1D histogram of sim objects with given plotConfig.
     """
     if ax is None:
         ax = plt.gca()
@@ -17,15 +16,11 @@ def plotDiscreteHistSim(rootFile, plotConfig, ax=None, axRatio=None, nEvents=Non
     histTotal = getHist(rootFile, "SimPixelTracks/%s" % (plotConfig.histname))
     histPass  = getHist(rootFile, "SimPixelTracks/%s" % (plotConfig.histname), isPass=True)
 
-    # x positions + widths (if reco is also plotted, shifted to left + half the width)
-    w = histTotal.axes.widths[0] / (6 if plotReco else 3)
-    x = histTotal.axes.centers[0] - (w if plotReco else 0)
-    xTotal = x - w/2
-    xPass  = x + w/2
-
-    ax.bar(xTotal, histTotal.values(), w, yerr=np.sqrt(histTotal.variances()), color=Colors.total, label="%ss (all)" % plotConfig.simSubject)
-    ax.bar(xPass, histPass.values(), w, yerr=np.sqrt(histPass.variances()), color=Colors.passed, 
-           label="TrackingParticles (w/ alive SimNtuplet)" if plotConfig.isParticles else "%ss (pass all cuts)" % plotConfig.simSubject)
+    histPass.plot1d(ax=ax, histtype="fill", hatch='//', facecolor="w", edgecolor=Colors.passed,  
+                    label="TrackingParticles (w/ alive SimNtuplet)" if plotConfig.isParticles else "%ss (pass all cuts)" % plotConfig.simSubject % plotConfig.simSubject)
+    histPass.plot1d(ax=ax, histtype="step",color=Colors.passed, linewidth=2,
+                    label="TrackingParticles (w/ alive SimNtuplet)" if plotConfig.isParticles else "%ss (pass all cuts)" % plotConfig.simSubject % plotConfig.simSubject)
+    histTotal.plot1d(ax=ax, histtype="step", label="%ss (all)" % plotConfig.simSubject, color=Colors.total, linewidth=2)
 
     # scale according to number of events if given
     if nEvents is not None:
@@ -44,9 +39,9 @@ def plotDiscreteHistSim(rootFile, plotConfig, ax=None, axRatio=None, nEvents=Non
     return findXLimits(histTotal, log=ax.get_xscale() == "log"), histTotal.axes.centers[0]
 
 
-def plotDiscreteHistReco(rootFile, plotConfig, ax=None, axRatio=None, axCumSum=None, nEvents=None, plotSim=True):
+def plotContineousHistReco(rootFile, plotConfig, ax=None, axRatio=None, axCumSum=None, nEvents=None):
     """
-    Plot a given discrete 1D histogram of reco objects with given plotConfig.
+    Plot a given contineous 1D histogram of reco objects with given plotConfig.
     """
     if ax is None:
         ax = plt.gca()
@@ -55,17 +50,15 @@ def plotDiscreteHistReco(rootFile, plotConfig, ax=None, axRatio=None, axCumSum=N
     histTrue = getHist(rootFile, "TruePixelTracks/%s" % (plotConfig.histname))
     histFake = getHist(rootFile, "FakePixelTracks/%s" % (plotConfig.histname))
 
-    # x positions + widths (if reco is also plotted, shifted to left + half the width)
-    w = histTrue.axes.widths[0] / (6 if plotSim else 3)
-    x = histTrue.axes.centers[0] + (w if plotSim else 0)
-    xTrue = x - w/2
-    xFake = x + w/2
-
     alpha = 0.25
-    ax.bar(xTrue, histTrue.values(), w, yerr=np.sqrt(histTrue.variances()), edgecolor=Colors.true, facecolor=toRGBA(Colors.true,alpha),
-           label="true PixelTracks" if plotConfig.isParticles else ("%ss of true PixelTracks" % plotConfig.recoSubject))
-    ax.bar(xFake, histFake.values(), w, yerr=np.sqrt(histFake.variances()), edgecolor=Colors.fake, facecolor=toRGBA(Colors.fake,alpha), 
-           label="fake PixelTracks" if plotConfig.isParticles else ("%ss of fake PixelTracks" % plotConfig.recoSubject))
+    histTrue.plot1d(ax=ax, histtype="fill", facecolor=toRGBA(Colors.true,alpha),
+                    label="true PixelTracks" if plotConfig.isParticles else ("%ss of true PixelTracks" % plotConfig.recoSubject))
+    histTrue.plot1d(ax=ax, histtype="step", color=Colors.true, linestyle="dashed",
+                    label="true PixelTracks" if plotConfig.isParticles else ("%ss of true PixelTracks" % plotConfig.recoSubject))
+    histFake.plot1d(ax=ax, histtype="fill", facecolor=toRGBA(Colors.fake,alpha),
+                    label="fake PixelTracks" if plotConfig.isParticles else ("%ss of fake PixelTracks" % plotConfig.recoSubject))
+    histFake.plot1d(ax=ax, histtype="step", color=Colors.fake, linestyle="dashed",
+                    label="fake PixelTracks" if plotConfig.isParticles else ("%ss of fake PixelTracks" % plotConfig.recoSubject))
 
     # scale according to number of events if given
     if nEvents is not None:
@@ -79,7 +72,7 @@ def plotDiscreteHistReco(rootFile, plotConfig, ax=None, axRatio=None, axCumSum=N
     if axRatio is not None:
         if (histTrue+histFake).sum() > 0:
             plotRatioEfficiency(histFake, histTrue+histFake, ax=axRatio, fmt=".", color=Colors.fake)
-
+            
         axRatio.set_ylabel("Reco%s\nfake rate" % plotConfig.recoSubject, fontsize="x-small", color=Colors.fake)
 
     if axCumSum is not None:
@@ -94,12 +87,12 @@ def plotDiscreteHistReco(rootFile, plotConfig, ax=None, axRatio=None, axCumSum=N
 # main function for plotting
 # ------------------------------------------------------------------------------------------
 
-def plotDiscreteHist(rootFile, plotConfig, axSim=None, axReco=None, 
-                     axRatioSim=None, axRatioReco=None, axCumSumReco=None, 
-                     nEvents=None, limitXRange=False,
-                     plotSim=True, plotReco=True):
+def plotContineousHist(rootFile, plotConfig, axSim=None, axReco=None, 
+                       axRatioSim=None, axRatioReco=None, axCumSumReco=None,
+                       nEvents=None, limitXRange=False,
+                       plotSim=True, plotReco=True):
     """
-    Plots a discrete 1D histogram for given PlotConfig.
+    Plots a contineous 1D histogram for given PlotConfig.
 
     Args:
         rootFile (opened ROOT file): The object returned by `uproot.open(filename.root)`.
@@ -117,13 +110,13 @@ def plotDiscreteHist(rootFile, plotConfig, axSim=None, axReco=None,
     """
     # load SimPixelTracks if wanted
     if plotSim:
-        xLim1, x = plotDiscreteHistSim(rootFile, plotConfig, ax=axSim, axRatio=axRatioSim, nEvents=nEvents, plotReco=plotReco)
+        xLim1, x = plotContineousHistSim(rootFile, plotConfig, ax=axSim, axRatio=axRatioSim, nEvents=nEvents)
     else:
         xLim1 = (None, None)
 
     # load RecoPixelTracks if wanted
     if plotReco:
-        xLim2, x = plotDiscreteHistReco(rootFile, plotConfig, ax=axReco, axRatio=axRatioReco, axCumSum=axCumSumReco, nEvents=nEvents, plotSim=plotSim)
+        xLim2, x = plotContineousHistReco(rootFile, plotConfig, ax=axReco, axRatio=axRatioReco, axCumSum=axCumSumReco, nEvents=nEvents)
     else:
         xLim2 = (None, None)
 
@@ -132,24 +125,10 @@ def plotDiscreteHist(rootFile, plotConfig, axSim=None, axReco=None,
         ax = plt.gca()
     else:
         ax = axSim if axSim is not None else axReco
-
-    if (axRatioSim is None) and (axRatioReco is None):
-        ax2 = ax
-    else:
-        ax2 = axSim if axRatioSim is not None else axRatioReco
         
     # if limit x range
     xLim = limitXNone(xLim1, xLim2)
     if limitXRange:
         ax.set_xlim(xLim)
-        
-    # fix x axis ticks
-    maskX = (x < ax.get_xlim()[1])
-    stride = 1 + int(maskX.sum() / 15)
-    for ax_ in [axSim, axReco, axRatioReco, axRatioSim]:
-        if ax_ is not None:
-            ax_.xaxis.set_tick_params(which='minor',bottom=False,top=False)
-
-    ax2.set_xticks(x[maskX], [(str(int(x_)) if (x_%stride==0) else "") for x_ in x[maskX]])
 
     return xLim

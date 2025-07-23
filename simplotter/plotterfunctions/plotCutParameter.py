@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from simplotter.utils.histtools import getHist, findXLimits
-from simplotter.utils.plotttools import savefig, cmslabel
+from simplotter.utils.plotttools import savefig, cmslabel, Colors, legend
 from simplotter.utils.utils import valToLatexStr, limitXNone, toRGBA
 from simplotter.plotterfunctions.plotRatio import plotRatioEfficiency
 
@@ -94,26 +94,27 @@ def plotCutRecoDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEv
     if ax is None:
         ax = plt.gca()
 
-    subject = "Doublet" if cellCut.isDoubletCut else "Connection"
+    subject = "Doublet" if cellCut.isDoubletCut else (
+              "Connection" if cellCut.isConnectionCut else
+              "Track"
+    )
         
     # load histograms
     histFake = getHist(rootFile, "FakePixelTracks/%s%s" % (subfolder,cellCut.histname))
-    histTrue = getHist(rootFile, "TruePixelTracks/%spass_%s" % (subfolder,cellCut.histname))
+    histTrue = getHist(rootFile, "TruePixelTracks/%s%s" % (subfolder,cellCut.histname))
 
-    trueColor = "#1ca01c"
-    fakeColor = "#FF0000"
     alpha = 0.25
     if histTrue.sum() > 0:
-        histTrue.plot1d(ax=ax, histtype="fill", label="%ss of true PixelTracks" % subject, facecolor=toRGBA(trueColor,alpha)) 
-        histTrue.plot1d(ax=ax, histtype="step", label="%ss of true PixelTracks" % subject, color=trueColor, linestyle="dashed")
+        histTrue.plot1d(ax=ax, histtype="fill", label="%ss of true PixelTracks" % subject, facecolor=toRGBA(Colors.true,alpha)) 
+        histTrue.plot1d(ax=ax, histtype="step", label="%ss of true PixelTracks" % subject, color=Colors.true, linestyle="dashed")
     else:
-        ax.axhline(0, label="no %ss of true PixelTracks" % subject, color=trueColor, linestyle="dashed")
+        ax.axhline(0, label="no %ss of true PixelTracks" % subject, color=Colors.true, linestyle="dashed")
         
     if histTrue.sum() > 0:
-        histFake.plot1d(ax=ax, histtype="fill", label="%ss of fake PixelTracks" % subject, facecolor=toRGBA(fakeColor,alpha))
-        histFake.plot1d(ax=ax, histtype="step", label="%ss of fake PixelTracks" % subject, color=fakeColor, linestyle="dashed")
+        histFake.plot1d(ax=ax, histtype="fill", label="%ss of fake PixelTracks" % subject, facecolor=toRGBA(Colors.fake,alpha))
+        histFake.plot1d(ax=ax, histtype="step", label="%ss of fake PixelTracks" % subject, color=Colors.fake, linestyle="dashed")
     else:
-        ax.axhline(0, label="no %ss of fake PixelTracks" % subject, color=fakeColor, linestyle="dashed")
+        ax.axhline(0, label="no %ss of fake PixelTracks" % subject, color=Colors.fake, linestyle="dashed")
 
     # scale according to number of events if given
     if nEvents is not None:
@@ -143,30 +144,30 @@ def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEve
     if ax is None:
         ax = plt.gca()
     
-    subject  = "SimDoublet" if cellCut.isDoubletCut else "SimConnection"
+    subject  = "SimDoublet" if cellCut.isDoubletCut else (
+               "SimConnection" if cellCut.isConnectionCut else
+               "TrackingParticle")
 
     # load histograms
     histTotal = getHist(rootFile, "SimPixelTracks/%s%s" % (subfolder,cellCut.histname))
-    histPass = getHist(rootFile, "SimPixelTracks/%spass_%s" % (subfolder,cellCut.histname))
+    histPass = getHist(rootFile, "SimPixelTracks/%s%s" % (subfolder,cellCut.histname), isPass=True)
     
     # find the edges and values of the doublets passing this cut
-    x = histTotal.axes.edges[0]
-    y = histTotal.values()
+    # x = histTotal.axes.edges[0]
+    # y = histTotal.values()
     #passValues, passEdges = findPassValuesEdges(y, x, cellCut)
 
     # plot: passing this cut, passing all cuts, all
-    passColor = '#51BBFE'
-    allColor = "#00008B"
     if histTotal.sum() > 0:
         #ax.stairs(passValues, passEdges, fill=True, color='#5790fc', alpha=0.5, label="SimDoublets (pass this cut)")
         if histPass.sum() > 0:
-            histPass.plot1d(ax=ax, histtype="fill", label="%ss (pass all cuts)" % subject, hatch='//', facecolor="w", edgecolor=passColor)
-            histPass.plot1d(ax=ax, histtype="step", label="%ss (pass all cuts)" % subject, color=passColor, linewidth=2)
+            histPass.plot1d(ax=ax, histtype="fill", label="%ss (pass all cuts)" % subject, hatch='//', facecolor="w", edgecolor=Colors.passed)
+            histPass.plot1d(ax=ax, histtype="step", label="%ss (pass all cuts)" % subject, color=Colors.passed, linewidth=2)
         else:
-            ax.axhline(0, label="no %s passed all cuts" % subject, color=passColor, linewidth=2)
-        histTotal.plot1d(ax=ax, histtype="step", label="%ss (all)" % subject, color=allColor, linewidth=2)
+            ax.axhline(0, label="no %s passed all cuts" % subject, color=Colors.passed, linewidth=2)
+        histTotal.plot1d(ax=ax, histtype="step", label="%ss (all)" % subject, color=Colors.total, linewidth=2)
     else:
-        ax.axhline(0, label="no %ss" % subject, color=allColor, linewidth=2)
+        ax.axhline(0, label="no %ss" % subject, color=Colors.total, linewidth=2)
     
     # set fix axes
     ax.set_ylabel("#%ss" % subject + ("" if nEvents is None else " / event") + cellCut.yLabelAddition)
@@ -179,8 +180,8 @@ def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEve
     # plot the ratio if wanted
     if axRatio is not None:
         if histTotal.sum() > 0:
-            plotRatioEfficiency(histPass, histTotal, cellCut=cellCut, ax=axRatio, fmt=".", color=passColor)
-        axRatio.set_ylabel("%s\nefficiency" % subject, fontsize="x-small", color=passColor)
+            plotRatioEfficiency(histPass, histTotal, cellCut=cellCut, ax=axRatio, fmt=".", color=Colors.passed)
+        axRatio.set_ylabel("%s\nefficiency" % subject, fontsize="x-small", color=Colors.passed)
     
     return findXLimits(histTotal, log=ax.get_xscale() == "log")
 
@@ -209,22 +210,24 @@ def plotCutParameter(rootFile, cellCut, directory="plots",
         plotRecoDoublets (bool, optional): To enable/disable the plotting of the reconstructed doublets used in RecoTracks.
     """
     # specify subfolder depending on layer-pair dependence
-    subfolder = "CAParameters/" + ("doubletCuts/" if cellCut.isDoubletCut else "connectionCuts/")
+    subfolder = "CAParameters/" + ("doubletCuts/" if cellCut.isDoubletCut else 
+                                  ("connectionCuts/" if cellCut.isConnectionCut else
+                                   "startingCuts/"))
     if (cellCut.isLayerDependent) and (cellCut.isDoubletCut):
         subfolder += "lp_%i_%i/" % (cellCut.innerLayer, cellCut.outerLayer)
     elif cellCut.isDoubletCut:
         subfolder += "global/"
-    elif (cellCut.isLayerDependent) and (cellCut.isConnectionCut):
+    elif (cellCut.isLayerDependent) and (cellCut.isConnectionCut or cellCut.isStartingCut):
         subfolder += "layer_%i/" % cellCut.innerLayer
-    elif not cellCut.isConnectionCut:
-        raise ValueError('Provided cut "%s" is neither DoubletCut nor ConnectionCut. ' % cellCut.histname +
+    elif not (cellCut.isConnectionCut or cellCut.isStartingCut):
+        raise ValueError('Provided cut "%s" is neither DoubletCut nor ConnectionCut nor StartingCut. ' % cellCut.histname +
                          'If it is, please specify this in its CellCut object ' +
                          'by setting the respective isXXXXCut to True.')
     
     # create new figure
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[3, 1])
 
-    # set x axis to log for pt
+    # set x axis to log if wanted
     if cellCut.isLog:
         ax1.set_xscale("log")
 
@@ -269,20 +272,17 @@ def plotCutParameter(rootFile, cellCut, directory="plots",
         cmslabel(ax=ax1, llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"])
     
     # save and show the figure
-    axsToCheck = [ax1, ax1c] if (plotCutRecoDoublets and plotCutSimDoublets) else [ax1]
-    handlesLabels = [ax.get_legend_handles_labels() for ax in axsToCheck]
-    handles, labels = [sum(lol, []) for lol in zip(*handlesLabels)]
-    uniqueLabels = np.unique(labels)
-    labels = np.array(labels)
-    uniqueHandles = [tuple([handles[i] for i in np.where(label==labels)[0]]) for label in uniqueLabels]
-    directory += "/CAParameters/" + ("doubletCuts" if cellCut.isDoubletCut else "connectionCuts")
+    axs = [ax1, ax1c] if (plotCutRecoDoublets and plotCutSimDoublets) else [ax1]
+    directory += "/CAParameters/" + ("doubletCuts" if cellCut.isDoubletCut else 
+                                    ("connectionCuts" if cellCut.isConnectionCut else
+                                     "startingCuts"))
     if (cellCut.isLayerDependent) and (cellCut.isDoubletCut):
-        ax1.legend(uniqueHandles, uniqueLabels, title = "Layer pair (%i,%i)" % (cellCut.innerLayer, cellCut.outerLayer), loc='upper left', bbox_to_anchor=(1.2, 1))
+        legend(ax1, axs, title = "Layer pair (%i,%i)" % (cellCut.innerLayer, cellCut.outerLayer), loc='upper left', bbox_to_anchor=(1.2, 1))
         savefig("%s/%s/lp_%i_%i.%s" % (directory, cellCut.histname, cellCut.innerLayer, cellCut.outerLayer, saveas))
-    elif (cellCut.isLayerDependent) and (cellCut.isConnectionCut):
-        ax1.legend(uniqueHandles, uniqueLabels, title = "Layer %i" % (cellCut.innerLayer), loc='upper left', bbox_to_anchor=(1.2, 1))
+    elif (cellCut.isLayerDependent) and (cellCut.isConnectionCut or cellCut.isStartingCut):
+        legend(ax1, axs, title = "Layer %i" % (cellCut.innerLayer), loc='upper left', bbox_to_anchor=(1.2, 1))
         savefig("%s/%s/layer_%i.%s" % (directory, cellCut.histname, cellCut.innerLayer, saveas))
     else:
-        ax1.legend(uniqueHandles, uniqueLabels, loc='upper left', bbox_to_anchor=(1.2, 1))
+        legend(ax1, axs, loc='upper left', bbox_to_anchor=(1.2, 1))
         savefig("%s/%s.%s" % (directory, cellCut.histname, saveas))
     plt.close()
