@@ -39,3 +39,11 @@ def markLayersX(ax):
     ax.axvline(3.5,  color="w", linestyle=(0,(3,3)))
     ax.axvline(15.5, color="w", linestyle=(0,(3,3)))
     ax.axvline(27.5, color="w", linestyle=(0,(3,3)))
+
+def markLayers(ax, plotConfig, layerPairs=None, boxes=True):
+    if plotConfig.hasLayerPairsOnX and plotConfig.hasLayerPairsOnY:
+        markLayersXY(ax, layerPairs=layerPairs, boxes=boxes)
+    elif plotConfig.hasLayerPairsOnX:
+        markLayersX(ax)
+    elif plotConfig.hasLayerPairsOnY:
+        markLayersY(ax)

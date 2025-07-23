@@ -17,6 +17,7 @@ class CellCut:
     # bools
     isDoubletCut = False
     isConnectionCut = False
+    isStartingCut = False
     isLayerDependent = False
     isLog = False
     # layerIds
@@ -25,8 +26,8 @@ class CellCut:
 
     def __init__(self, histname, min=-np.inf, max=np.inf, 
                  label="", cutLabelAddition="", yLabelAddition="", isLog=False,
-                 isDoubletCut=False, isConnectionCut=False, isLayerDependent=False,
-                 innerLayer=None, outerLayer=None
+                 isDoubletCut=False, isConnectionCut=False, isStartingCut=False,
+                 isLayerDependent=False, innerLayer=None, outerLayer=None
                 ):
         if (max == np.inf) and (min == -np.inf):
             self.type = None
@@ -45,6 +46,7 @@ class CellCut:
         self.histname = histname
         self.isDoubletCut = isDoubletCut
         self.isConnectionCut = isConnectionCut
+        self.isStartingCut = isStartingCut
         self.isLayerDependent = True if (innerLayer is not None) else isLayerDependent
         self.isLog = isLog
         self.innerLayer = innerLayer

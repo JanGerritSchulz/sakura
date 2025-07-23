@@ -1,13 +1,21 @@
 import numpy as np
 
-def getHist(ROOTfile, branch):
-    """This function imports the histogram under `branch` of the given `ROOTfile` and returns the `Hist`. 
+def getHist(rootFile, branch, isPass=False):
+    """This function imports the histogram under `branch` of the given `rootFile` and returns the `Hist`. 
 
     Args:
-        ROOTfile (opened ROOT file): The object returned by `uproot.open(filename.root)`.
-        branch (string): branch of the desired histogram in the ROOTfile (relative to the open directory in the file).
+        rootFile (opened ROOT file): The object returned by `uproot.open(filename.root)`.
+        branch (string): branch of the desired histogram in the rootFile (relative to the open directory in the file).
+        isPass (bool, optional): if true, take the pass histogram instead of the total
     """    
-    return ROOTfile[branch].to_hist()
+    if isPass:
+        # if pass histogram, insert a "pass_" in the branch path
+        pass_branch = branch.split("/")
+        pass_branch[-1] = "pass_"+pass_branch[-1]
+        pass_branch = "/".join(pass_branch)
+        return rootFile[pass_branch].to_hist()
+    else:
+        return rootFile[branch].to_hist()
 
 
 def findXLimits(histogram, log=False):
