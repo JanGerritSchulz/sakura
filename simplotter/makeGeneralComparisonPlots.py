@@ -11,7 +11,7 @@ import yaml
 from simplotter.dataconfig.layerPairs import simplePixelLayerPairs, NonSkippingLayerPairs
 
 from simplotter.plotterfunctions.plotSimNtuplets import plotSimNtuplets
-from simplotter.plotterfunctions.plotEfficiency import plotEfficiency
+#from simplotter.plotterfunctions.plotEfficiency import plotEfficiency
 from simplotter.plotterfunctions.plotDiscreteHist import plotDiscreteHist
 from simplotter.plotterfunctions.plotLayerPairs import plotLayerPairs
 

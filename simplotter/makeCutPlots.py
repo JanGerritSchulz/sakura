@@ -11,9 +11,10 @@ from simplotter.utils.CellCut import CellCut
 from simplotter.utils.plotttools import setStyle
 from simplotter.utils.utils import valToLatexStr
 
-CUTlist_vectors = ["cellMinz", "cellMaxz", "cellPhiCuts", "cellMaxr", "CAThetaCuts", "dcaCuts"]
-CUTlist_scalars = ["cellMinYSizeB1", "cellMinYSizeB2", 
-                   "cellMaxDYSize12", "cellMaxDYSize", "cellMaxDYPred", "cellZ0Cut", "cellPtCut",
+CUTlist_vectors = ["caDCACuts", "caThetaCuts", "phiCuts", "minInnerZ", "maxInnerZ", "minOuterZ", "maxOuterZ", 
+                   "minInnerR", "maxInnerR", "minOuterR", "maxOuterR", "maxDZ", "minDZ", "maxDR"]
+CUTlist_scalars = ["minYsizeB1", "minYsizeB2", 
+                   "maxDYsize12", "maxDYsize", "maxDYPred", "cellZ0Cut", "cellPtCut",
                    "ptmin", "hardCurvCut"]
 
 # ------------------------------------------------------------------------------------------
@@ -28,33 +29,35 @@ def getCutParameters(cutFile="cutParameters/currentCuts.yml"):
         CUTS = yaml.load(f_, Loader=yaml.FullLoader)
 
     layerPairs = CUTS["layerPairs"]
-    nLayers = len(CUTS["CAThetaCuts"])
+    nLayers = len(CUTS["caThetaCuts"])
 
     GlobalCellCuts = {
         # doublet cuts
-        "z0" :      CellCut("z0",       isDoubletCut=True, max=CUTS["cellZ0Cut"],       label="Longitudinal impact parameter $z_0$ [cm]"),
-        "pTFromR" : CellCut("pTFromR",  isDoubletCut=True, min=CUTS["cellPtCut"],       label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True),
-        "DYPred":   CellCut("DYPred",   isDoubletCut=True, max=CUTS["cellMaxDYPred"],   label="Absolute difference between\nactual and expected inner cluster size [pixels]"),
-        "DYsize12": CellCut("DYsize12", isDoubletCut=True, max=CUTS["cellMaxDYSize12"], label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
-        "DYsize":   CellCut("DYsize",   isDoubletCut=True, max=CUTS["cellMaxDYSize"],   label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
-        "YsizeB1":  CellCut("YsizeB1",  isDoubletCut=True, min=CUTS["cellMinYSizeB1"],  label="Size in $z$-direction of inner cluster [pixels]"),
-        "YsizeB2":  CellCut("YsizeB2",  isDoubletCut=True, min=CUTS["cellMinYSizeB2"],  label="Size in $z$-direction of inner cluster [pixels]"),
+        "z0" :      CellCut("z0",       isDoubletCut=True, max=CUTS["cellZ0Cut"],   label="Longitudinal impact parameter $z_0$ [cm]"),
+        "pTFromR" : CellCut("pTFromR",  isDoubletCut=True, min=CUTS["cellPtCut"],   label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True),
+        "DYPred":   CellCut("DYPred",   isDoubletCut=True, max=CUTS["maxDYPred"],   label="Absolute difference between\nactual and expected inner cluster size [pixels]"),
+        "DYsize12": CellCut("DYsize12", isDoubletCut=True, max=CUTS["maxDYsize12"], label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
+        "DYsize":   CellCut("DYsize",   isDoubletCut=True, max=CUTS["maxDYsize"],   label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
+        "YsizeB1":  CellCut("YsizeB1",  isDoubletCut=True, min=CUTS["minYsizeB1"],  label="Size in $z$-direction of inner cluster [pixels]"),
+        "YsizeB2":  CellCut("YsizeB2",  isDoubletCut=True, min=CUTS["minYsizeB2"],  label="Size in $z$-direction of inner cluster [pixels]"),
         # connection cuts
-        "hardCurv" : CellCut("hardCurv", isConnectionCut=True, max=CUTS["hardCurvCut"], label=r"Curvature $\frac{1}{|R|}$ [1/cm]"),
+        "hardCurvCut" : CellCut("hardCurvCut", isConnectionCut=True, max=CUTS["hardCurvCut"], label=r"Curvature $\frac{1}{|R|}$ [1/cm]"),
     }
 
     LayerCellCuts = {
         # doublet cuts
-        "dr":       [CellCut("dr",      isDoubletCut=True, isLayerDependent=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["cellMaxr"][i],                          label=r"$\text{d}r$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "dz":       [CellCut("dz",      isDoubletCut=True, isLayerDependent=True, innerLayer=lp[0], outerLayer=lp[1],                                                   label=r"$\text{d}z$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "idphi":    [CellCut("idphi",   isDoubletCut=True, isLayerDependent=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["cellPhiCuts"][i],                       label=r"Absolute integer $\text{d}\phi$ between outer and inner RecHit") for i, lp in enumerate(layerPairs)],
-        "innerZ":   [CellCut("innerZ",  isDoubletCut=True, isLayerDependent=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["cellMinz"][i], max=CUTS["cellMaxz"][i], label="$z$-coordinate of inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "innerR":   [CellCut("innerR",  isDoubletCut=True, isLayerDependent=True, innerLayer=lp[0], outerLayer=lp[1],                                                   label="$r$-coordinate of inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "outerZ":   [CellCut("outerZ",  isDoubletCut=True, isLayerDependent=True, innerLayer=lp[0], outerLayer=lp[1],                                                   label="$z$-coordinate of outer RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "outerR":   [CellCut("outerR",  isDoubletCut=True, isLayerDependent=True, innerLayer=lp[0], outerLayer=lp[1],                                                   label="$r$-coordinate of outer RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "dr":       [CellCut("dr",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["maxDR"][i],                               label=r"$\text{d}r$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "dz":       [CellCut("dz",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minDZ"][i],     max=CUTS["maxDZ"][i],     label=r"$\text{d}z$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "idphi":    [CellCut("idphi",   isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["phiCuts"][i],                             label=r"Absolute integer $\text{d}\phi$ between outer and inner RecHit") for i, lp in enumerate(layerPairs)],
+        "innerZ":   [CellCut("innerZ",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minInnerZ"][i], max=CUTS["maxInnerZ"][i], label="$z$-coordinate of inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "innerR":   [CellCut("innerR",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minInnerR"][i], max=CUTS["maxInnerR"][i], label="$r$-coordinate of inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "outerZ":   [CellCut("outerZ",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minOuterZ"][i], max=CUTS["maxOuterZ"][i], label="$z$-coordinate of outer RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "outerR":   [CellCut("outerR",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minOuterR"][i], max=CUTS["maxOuterR"][i], label="$r$-coordinate of outer RecHit [cm]") for i, lp in enumerate(layerPairs)],
         # connection cuts
-        "CAThetaCut_over_ptmin" :   [CellCut("CAThetaCut_over_ptmin",   isLog=True, isConnectionCut=True, isLayerDependent=True, innerLayer=l, max=CUTS["CAThetaCuts"][l] / CUTS["ptmin"],  label=r"CATheta cut variable $\frac{2 A}{|d\cdot \text{d} r|}$",                yLabelAddition="\n(with centered RecHit in layer %i)" % l, cutLabelAddition=r"\text{CATheta/ptmin}$" + "\n $= " + valToLatexStr(CUTS["CAThetaCuts"][l]) +" / " + valToLatexStr(CUTS["ptmin"]) + "=") for l in range(nLayers)],
-        "dcaCut" :                  [CellCut("dcaCut",                  isLog=True, isConnectionCut=True, isLayerDependent=True, innerLayer=l, max=CUTS["dcaCuts"][l],                      label="Transverse distance to the beamspot\nat point of closest approach [cm]", yLabelAddition="\n(with inner RecHit in layer %i)" % l) for l in range(nLayers)],
+        "caThetaCut_over_ptmin" :   [CellCut("caThetaCut_over_ptmin", isLog=True, isConnectionCut=True, innerLayer=l, max=CUTS["caThetaCuts"][l] / CUTS["ptmin"], label=r"CATheta cut variable $\frac{2 A}{|d\cdot \text{d} r|}$",                yLabelAddition="\n(with centered RecHit in layer %i)" % l, cutLabelAddition=r"\text{CATheta/ptmin}$" + "\n $= " + valToLatexStr(CUTS["caThetaCuts"][l]) +" / " + valToLatexStr(CUTS["ptmin"]) + "=") for l in range(nLayers)],
+        "caDCACut" :                [CellCut("caDCACut",              isLog=True, isConnectionCut=True, innerLayer=l, max=CUTS["caDCACuts"][l],                   label="Transverse distance to the beamspot\nat point of closest approach [cm]", yLabelAddition="\n(with inner RecHit in layer %i)" % l) for l in range(nLayers)],
+        # starting cuts
+        "firstHitR" : [CellCut("firstHitR", isStartingCut=True, innerLayer=l, label="$r$-coordinate of first RecHit of the TrackingObject [cm]", yLabelAddition="\n(with first RecHit in layer %i)" % l) for l in range(nLayers)],
     }
 
     return GlobalCellCuts, LayerCellCuts
@@ -174,13 +177,13 @@ def main():
         simDoubletsAnalyzer = getattr(config_module.process, args.analyzer, None)
         if simDoubletsAnalyzer is None:
             raise ValueError("Invalid parameter `analyzer`! In the given CMSSW config, no module with the name `%s` was found" % args.analyzer)
-        layerPairs = list(getattr(simDoubletsAnalyzer, "layerPairs"))
+        layerPairs = list(getattr(simDoubletsAnalyzer.geometry, "pairGraph"))
         layerPairs = [layerPairs[2*i:2*i+2] for i in range(int(len(layerPairs)/2))]
-        startingPairsIndex = list(getattr(simDoubletsAnalyzer, "startingPairs"))
+        startingPairsIndex = list(getattr(simDoubletsAnalyzer.geometry, "startingPairs"))
         CUTdict = {
             cutname: getattr(simDoubletsAnalyzer, cutname).value() for cutname in CUTlist_scalars
         } | {
-            cutname: list(getattr(simDoubletsAnalyzer, cutname)) for cutname in CUTlist_vectors
+            cutname: list(getattr(simDoubletsAnalyzer.geometry, cutname)) for cutname in CUTlist_vectors
         } | {
             "layerPairs": layerPairs,
             "startingPairsIndex": startingPairsIndex,
