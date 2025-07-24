@@ -1,4 +1,5 @@
 import numpy as np
+import hist
 
 def getHist(rootFile, branch, isPass=False):
     """This function imports the histogram under `branch` of the given `rootFile` and returns the `Hist`. 
@@ -16,6 +17,37 @@ def getHist(rootFile, branch, isPass=False):
         return rootFile[pass_branch].to_hist()
     else:
         return rootFile[branch].to_hist()
+    
+
+
+
+def histSlice1DFrom2D(inHist, bin, axis=0, axisIsDiscrete=False):
+    """
+    Takes a 2D histogram as input and returns the histogram slice of `bin` along `axis` as a new 1D histogram.
+    It returns the sliced out histogram together with the value or range of the chosen bin along axis.
+
+    Args:
+        inHist (hist.Hist): Input 2D histogram from which a slice be taken.
+        bin (int): the bin along the given axis that shall be taken.
+        axis (int, optional): axis to take the bin from (the axis that is reduced).
+    """
+    edges = inHist.axes.edges[axis].flatten()
+    values = np.take(inHist.values(), [bin], axis=axis).flatten()
+    variances = np.take(inHist.variances(), [bin], axis=axis).flatten()
+    
+    outHist = hist.Hist(inHist.axes[~axis])
+    outHist[:] = values
+
+    # if slice is discrete, return the center of the sliced bin
+    # else return the edges of the bin
+    if axisIsDiscrete:
+        slice = round(inHist.axes.centers[axis].flatten()[bin])
+    else:
+        slice = inHist.axes.edges[axis].flatten()[bin:bin+2]
+
+    return outHist, slice
+
+
 
 
 def findXLimits(histogram, log=False):

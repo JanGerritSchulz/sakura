@@ -3,6 +3,7 @@ from simplotter.plotterfunctions.plotHist2D import plotHist2D
 from simplotter.plotterfunctions.plotRatio2D import plotRatio2D
 from simplotter.plotterfunctions.plotProfile import plotProfile
 from simplotter.plotterfunctions.plotSimNtuplets import plotSimNtuplets
+from simplotter.plotterfunctions.plotHist1Dfrom2D import plotHist1Dfrom2D
 
 def plotHistogram(rootFile, plotConfig, directory="plots", 
                   nEvents=None, cmsConfig=None, limitXRange=False, 
@@ -32,10 +33,16 @@ def plotHistogram(rootFile, plotConfig, directory="plots",
 
     # plot the histograms
     if "1D" in plotConfig.type:
-        # if its a 1D histogram, use plotHist1D
-        plotHist1D(rootFile, plotConfig, directory=directory, 
-                   nEvents=nEvents, cmsConfig=cmsConfig, limitXRange=limitXRange, 
-                   plotSim=plotSim, plotReco=plotReco, saveas=saveas)
+        if "slice" in plotConfig.type:
+            # if its a sliced 1D histogram, use plotHist1Dfrom2D
+            plotHist1Dfrom2D(rootFile, plotConfig, directory=directory, 
+                    nEvents=nEvents, cmsConfig=cmsConfig, limitXRange=limitXRange, 
+                    plotSim=plotSim, plotReco=plotReco, saveas=saveas)
+        else:
+            # if its a normal 1D histogram, use plotHist1D
+            plotHist1D(rootFile, plotConfig, directory=directory, 
+                    nEvents=nEvents, cmsConfig=cmsConfig, limitXRange=limitXRange, 
+                    plotSim=plotSim, plotReco=plotReco, saveas=saveas)
 
     elif "2D" in plotConfig.type:
         if "ratio" in plotConfig.type:

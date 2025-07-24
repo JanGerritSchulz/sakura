@@ -36,8 +36,8 @@ GENERALPLOTLIST = [
     PlotConfig("general/num_vs_chi2",type="1D", isParticles=True,  xLabel=r"Normalized $\chi^2/\text{ndof}$", onlyReco=True, plotCumSumReco=True),
 
     # profiles
-    PlotConfig("SimNtuplets/mostAlive/fracNumRecHits_vs_eta",type="profile", isParticles=True, xLabel=r"$\eta$",             yLabel="Average fractional number of RecHits in\nlongest surviving SimNtuplet\ncompared to the longest one", onlySim=True, plotname="SimNtuplets/fracNumRecHits_vs_eta"),
-    PlotConfig("SimNtuplets/mostAlive/fracNumRecHits_vs_pt", type="profile", isParticles=True, xLabel=r"$p_\text{T}$ [GeV]", yLabel="Average fractional number of RecHits in\nlongest surviving SimNtuplet\ncompared to the longest one", onlySim=True, plotname="SimNtuplets/fracNumRecHits_vs_pt", isLogX=True),
+    #PlotConfig("SimNtuplets/mostAlive/fracNumRecHits_vs_eta",type="profile", isParticles=True, xLabel=r"$\eta$",             yLabel="Average fractional number of RecHits in\nlongest surviving SimNtuplet\ncompared to the longest one", onlySim=True, plotname="SimNtuplets/fracNumRecHits_vs_eta"),
+    #PlotConfig("SimNtuplets/mostAlive/fracNumRecHits_vs_pt", type="profile", isParticles=True, xLabel=r"$p_\text{T}$ [GeV]", yLabel="Average fractional number of RecHits in\nlongest surviving SimNtuplet\ncompared to the longest one", onlySim=True, plotname="SimNtuplets/fracNumRecHits_vs_pt", isLogX=True),
 
     # 2D plots
     PlotConfig("SimDoublets/layerPairs",                 type="2D", isDoublets=True,  xLabel="Inner layer", yLabel="Outer layer",  hasLayerPairsOnXY=True),
@@ -58,6 +58,12 @@ GENERALPLOTLIST = [
     PlotConfig("mostAlive", type="SimNtuplet", xLabel=r"$\eta$",             plotname="SimNtuplets/mostAliveRate_vs_eta"),
     PlotConfig("longest",   type="SimNtuplet", xLabel=r"$p_\text{T}$ [GeV]", plotname="SimNtuplets/longestRate_vs_pt",   isLogX=True),
     PlotConfig("longest",   type="SimNtuplet", xLabel=r"$\eta$",             plotname="SimNtuplets/longestRate_vs_eta"),
+
+    # sliced 1D from 2D
+    PlotConfig("general/numRecHits_vs_chi2", type="slices1D", xLabel=r"Normalized $\chi^2$",                            isParticles=True, slices=[5,6,7,8,9], sliceLabel=r"$N_\text{RecHits}$", axis=1, axisIsDiscrete=True, sliceLabelAlignment="right", plotCumSumReco=True, onlyReco=True),
+    PlotConfig("general/numRecHits_vs_dxy",  type="slices1D", xLabel=r"Transverse IP to beamspot $d_{xy}$ [cm]",        isParticles=True, slices=[5,6,7,8,9], sliceLabel=r"$N_\text{RecHits}$", axis=1, axisIsDiscrete=True, sliceLabelAlignment="right", plotCumSumReco=True, isLogY=True),
+    PlotConfig("general/numRecHits_vs_dz",   type="slices1D", xLabel=r"Longitudinal IP to beamspot $\text{d} z$ [cm]",  isParticles=True, slices=[5,6,7,8,9], sliceLabel=r"$N_\text{RecHits}$", axis=1, axisIsDiscrete=True, sliceLabelAlignment="right", plotCumSumReco=True),
+    PlotConfig("general/numRecHits_vs_pt",   type="slices1D", xLabel=r"$p_\text{T}$ [GeV]",                             isParticles=True, slices=[5,6,7,8,9], sliceLabel=r"$N_\text{RecHits}$", axis=1, axisIsDiscrete=True, sliceLabelAlignment="right", plotCumSumReco=True, isLogX=True),
 ]
 
 # ------------------------------------------------------------------------------------------

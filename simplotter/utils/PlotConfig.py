@@ -31,6 +31,12 @@ class PlotConfig:
     plotCumSumReco = False
     onlyReco = False
     onlySim = False
+    # configs for plotting a 2D histogram sliced into multiple 1D histograms (type="sliced2D")
+    slices = []  # indices of the slices/bins to be plotted
+    axis = 0     # axis to take the slices from
+    axisIsDiscrete = False # if the sliced axis is discrete, set to True
+    sliceLabel = ""  # label for the sliced quantity
+    sliceLabelAlignment = "left" # label in plot either left or right
 
     def __init__(self, histname, plotname=None, subfolder="", 
                  type=None, ratiohistname=None,
@@ -38,7 +44,9 @@ class PlotConfig:
                  hasLayerPairsOnX=False, hasLayerPairsOnY=False, hasLayerPairsOnXY=False,
                  isLogX=False, isLogY=False, isLogZ=True, plotCumSumReco=False,
                  isDoublets=False, isNtuplets=False, isParticles=False,
-                 useStartingPairs=False, onlyReco=False, onlySim=False
+                 useStartingPairs=False, onlyReco=False, onlySim=False,
+                 slices=[], axis=0, axisIsDiscrete=False, sliceLabel="",
+                 sliceLabelAlignment="left"
                 ):
         self.histname = histname
         self.ratiohistname = ratiohistname
@@ -60,6 +68,12 @@ class PlotConfig:
         self.plotCumSumReco = plotCumSumReco
         self.onlyReco = onlyReco
         self.onlySim = onlySim
+
+        self.slices = slices
+        self.axis = axis
+        self.axisIsDiscrete = axisIsDiscrete
+        self.sliceLabel = sliceLabel
+        self.sliceLabelAlignment = sliceLabelAlignment
 
         if isDoublets:
             self.simSubject = "SimDoublet"
