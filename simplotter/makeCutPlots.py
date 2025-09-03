@@ -11,8 +11,8 @@ from simplotter.utils.CellCut import CellCut
 from simplotter.utils.plotttools import setStyle
 from simplotter.utils.utils import valToLatexStr
 
-CUTlist_vectors = ["caDCACuts", "caThetaCuts", "phiCuts", "minInnerZ", "maxInnerZ", "minOuterZ", "maxOuterZ", 
-                   "minInnerR", "maxInnerR", "minOuterR", "maxOuterR", "maxDZ", "minDZ", "maxDR"]
+CUTlist_vectors = ["caDCACuts", "caThetaCuts", "phiCuts", "minInner", "maxInner", "minOuter", "maxOuter", 
+                   "maxDZ", "minDZ", "maxDR", "isBarrel"]
 CUTlist_scalars = ["minYsizeB1", "minYsizeB2", 
                    "maxDYsize12", "maxDYsize", "maxDYPred", "cellZ0Cut", "cellPtCut",
                    "ptmin", "hardCurvCut"]
@@ -33,26 +33,28 @@ def getCutParameters(cutFile="cutParameters/currentCuts.yml"):
 
     GlobalCellCuts = {
         # doublet cuts
-        "z0" :      CellCut("z0",       isDoubletCut=True, max=CUTS["cellZ0Cut"],   label="Longitudinal impact parameter $z_0$ [cm]"),
-        "pTFromR" : CellCut("pTFromR",  isDoubletCut=True, min=CUTS["cellPtCut"],   label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True),
+        "z0":       CellCut("z0",       isDoubletCut=True, max=CUTS["cellZ0Cut"],   label="Longitudinal impact parameter $z_0$ [cm]"),
+        "pTFromR":  CellCut("pTFromR",  isDoubletCut=True, min=CUTS["cellPtCut"],   label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True),
         "DYPred":   CellCut("DYPred",   isDoubletCut=True, max=CUTS["maxDYPred"],   label="Absolute difference between\nactual and expected inner cluster size [pixels]"),
         "DYsize12": CellCut("DYsize12", isDoubletCut=True, max=CUTS["maxDYsize12"], label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
         "DYsize":   CellCut("DYsize",   isDoubletCut=True, max=CUTS["maxDYsize"],   label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
         "YsizeB1":  CellCut("YsizeB1",  isDoubletCut=True, min=CUTS["minYsizeB1"],  label="Size in $z$-direction of inner cluster [pixels]"),
         "YsizeB2":  CellCut("YsizeB2",  isDoubletCut=True, min=CUTS["minYsizeB2"],  label="Size in $z$-direction of inner cluster [pixels]"),
         # connection cuts
-        "hardCurvCut" : CellCut("hardCurvCut", isConnectionCut=True, max=CUTS["hardCurvCut"], label=r"Curvature $\frac{1}{|R|}$ [1/cm]"),
+        "hardCurvCut" : CellCut("hardCurvCut",  isConnectionCut=True, max=CUTS["hardCurvCut"],  label=r"Curvature $\frac{1}{|R|}$ [1/cm]"),
+        "dCurvCut" :    CellCut("dCurvCut",     isConnectionCut=True, label=r"Absolute difference in curvature $\left| \frac{1}{R_i} - \frac{1}{R_o}\right|$ [1/cm]"),
+        "curvRatioCut": CellCut("curvRatioCut", isConnectionCut=True, label=r"Curvature ratio $\frac{R_o}{R_i}$", isLogY=True),
     }
 
     LayerCellCuts = {
         # doublet cuts
-        "dr":       [CellCut("dr",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["maxDR"][i],                               label=r"$\text{d}r$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "dz":       [CellCut("dz",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minDZ"][i],     max=CUTS["maxDZ"][i],     label=r"$\text{d}z$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "idphi":    [CellCut("idphi",   isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["phiCuts"][i],                             label=r"Absolute integer $\text{d}\phi$ between outer and inner RecHit") for i, lp in enumerate(layerPairs)],
-        "innerZ":   [CellCut("innerZ",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minInnerZ"][i], max=CUTS["maxInnerZ"][i], label="$z$-coordinate of inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "innerR":   [CellCut("innerR",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minInnerR"][i], max=CUTS["maxInnerR"][i], label="$r$-coordinate of inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "outerZ":   [CellCut("outerZ",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minOuterZ"][i], max=CUTS["maxOuterZ"][i], label="$z$-coordinate of outer RecHit [cm]") for i, lp in enumerate(layerPairs)],
-        "outerR":   [CellCut("outerR",  isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minOuterR"][i], max=CUTS["maxOuterR"][i], label="$r$-coordinate of outer RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "z0":      [CellCut("z0",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["cellZ0Cut"],                            label="Longitudinal impact parameter $z_0$ [cm]") for i, lp in enumerate(layerPairs)],
+        "pTFromR": [CellCut("pTFromR", isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["cellPtCut"],                            label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True) for i, lp in enumerate(layerPairs)],
+        "dr":      [CellCut("dr",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["maxDR"][i],                             label=r"$\text{d}r$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "dz":      [CellCut("dz",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minDZ"][i],    max=CUTS["maxDZ"][i],    label=r"$\text{d}z$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
+        "idphi":   [CellCut("idphi",   isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["phiCuts"][i],                           label=r"Absolute integer $\text{d}\phi$ between outer and inner RecHit") for i, lp in enumerate(layerPairs)],
+        "inner":   [CellCut("inner",   isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minInner"][i], max=CUTS["maxInner"][i], label="$%s$-coordinate of inner RecHit [cm]" % ("z" if CUTS["isBarrel"][lp[0]] else "r")) for i, lp in enumerate(layerPairs)],
+        "outer":   [CellCut("outer",   isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minOuter"][i], max=CUTS["maxOuter"][i], label="$%s$-coordinate of outer RecHit [cm]" % ("z" if CUTS["isBarrel"][lp[1]] else "r")) for i, lp in enumerate(layerPairs)],
         # connection cuts
         "caThetaCut_over_ptmin" :   [CellCut("caThetaCut_over_ptmin", isLog=True, isConnectionCut=True, innerLayer=l, max=CUTS["caThetaCuts"][l] / CUTS["ptmin"], label=r"CATheta cut variable $\frac{2 A}{|d\cdot \text{d} r|}$",                yLabelAddition="\n(with centered RecHit in layer %i)" % l, cutLabelAddition=r"\text{CATheta/ptmin}$" + "\n $= " + valToLatexStr(CUTS["caThetaCuts"][l]) +" / " + valToLatexStr(CUTS["ptmin"]) + "=") for l in range(nLayers)],
         "caDCACut" :                [CellCut("caDCACut",              isLog=True, isConnectionCut=True, innerLayer=l, max=CUTS["caDCACuts"][l],                   label="Transverse distance to the beamspot\nat point of closest approach [cm]", yLabelAddition="\n(with inner RecHit in layer %i)" % l) for l in range(nLayers)],
@@ -136,8 +138,8 @@ parser.add_argument("--llabel", default="Private Work", help="label next to CMS 
 parser.add_argument("--rlabel", default=None, help="label displayed in upper right of plot")
 parser.add_argument("--com", default=14, help="center of mass displayed in plots")
 parser.add_argument("--fullXRange", default=False, action='store_true', help="flag to have full x range displayed in plots (including all empty bins)")
-parser.add_argument("--onlySimDoublets", default=False, action='store_true', help="flag to plot only the SimDoublets distribtuions (no RecoDoublets)")
-parser.add_argument("--onlyRecoDoublets", default=False, action='store_true', help="flag to plot only the RecoDoublets distribtuions (no SimDoublets)")
+parser.add_argument("--onlySim", default=False, action='store_true', help="flag to plot only the SimDoublets distribtuions (no RecoDoublets)")
+parser.add_argument("--onlyReco", default=False, action='store_true', help="flag to plot only the RecoDoublets distribtuions (no SimDoublets)")
 parser.add_argument("--pdf", default=False, action='store_true', help="flag to save the plots in pdf instead of png")
 parser.add_argument("-t", "--nThreads", default=20, type=int,  help="Number of threads used for parallel plotting")
 
@@ -224,12 +226,12 @@ def main():
     else:
         print(" * plot only the distribution for the cut:", args.cut)
     
-    if args.onlySimDoublets and args.onlyRecoDoublets:
-        raise ValueError("Both `--onlySimDoublets` and `--onlyRecoDoublets` are specified. They are mutually exclusive. Please remove one of the two flags.")
-    elif args.onlySimDoublets:
+    if args.onlySim and args.onlyReco:
+        raise ValueError("Both `--onlySim` and `--onlyReco` are specified. They are mutually exclusive. Please remove one of the two flags.")
+    elif args.onlySim:
         plotSimDoublets, plotRecoDoublets = True, False
         print(" * plot only the SimDoublet distributions")
-    elif args.onlyRecoDoublets:
+    elif args.onlyReco:
         plotSimDoublets, plotRecoDoublets = False, True
         print(" * plot only the RecoDoublet distributions")
     else:
