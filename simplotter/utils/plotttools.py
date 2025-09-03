@@ -17,11 +17,19 @@ class ColorMaps:
     fake = mpl.pyplot.get_cmap("Reds")
     passed = mpl.pyplot.get_cmap("Blues")
     total = mpl.pyplot.get_cmap("plasma")
+    reco = mpl.colormaps.get_cmap('plasma_r')
+    sim = mpl.colormaps.get_cmap('RdYlGn')
 
     true.set_under('w')
     fake.set_under('w')
     passed.set_under('w')
     total.set_under('w')
+
+    def SimEff(self, eff):
+        return self.sim(eff)
+    
+    def RecoEff(self, eff):
+        return self.reco(eff)
     
     def get(self, which="Sim"):
         if which == "Sim":
@@ -115,3 +123,20 @@ def legend(ax, axs=None, **kwargs):
     # get handles, labels and plot the legend
     handles, labels = combineSubplotHandlesLabels(axs)
     ax.legend(handles, labels, **kwargs)
+
+
+def plotPercentageBox(ax, percentage, boxcolor, textcolor, loc="upper left"):
+    anchored_text = mpl.offsetbox.AnchoredText("%.2f%s" % (percentage*100,"%"), loc=loc, frameon = False,
+                                prop={"color": textcolor, "backgroundcolor": boxcolor, 
+                                      "bbox": {"facecolor":boxcolor, "edgecolor":boxcolor, "boxstyle":"Square, pad=0.4"}})
+    ax.add_artist(anchored_text)
+
+def plotPercentageBoxSim(ax, percentage, loc="upper right"):
+    boxcolor = ColorMap.SimEff(percentage)
+    textcolor = "k" if (percentage < 0.7) and (percentage>0.3) else "w"
+    plotPercentageBox(ax, percentage, boxcolor, textcolor, loc=loc)
+
+def plotPercentageBoxReco(ax, percentage, loc="upper left"):
+    boxcolor = ColorMap.RecoEff(percentage)
+    textcolor = "k" if (percentage<0.3) else "w"
+    plotPercentageBox(ax, percentage, boxcolor, textcolor, loc=loc)

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from simplotter.utils.histtools import getHist, findXLimits
-from simplotter.utils.plotttools import savefig, cmslabel, Colors, legend
+from simplotter.utils.plotttools import savefig, cmslabel, Colors, legend, plotPercentageBoxSim
 from simplotter.utils.utils import valToLatexStr, limitXNone, toRGBA
 from simplotter.plotterfunctions.plotRatio import plotRatioEfficiency
 
@@ -151,6 +151,7 @@ def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEve
     # load histograms
     histTotal = getHist(rootFile, "SimPixelTracks/%s%s" % (subfolder,cellCut.histname))
     histPass = getHist(rootFile, "SimPixelTracks/%s%s" % (subfolder,cellCut.histname), isPass=True)
+    fracPassThisCut = getHist(rootFile, "SimPixelTracks/%s%s_passThisCut" % (subfolder,cellCut.histname))
     
     # find the edges and values of the doublets passing this cut
     # x = histTotal.axes.edges[0]
@@ -176,6 +177,9 @@ def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEve
     if nEvents is not None:
         ticks = mpl.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/nEvents))
         ax.yaxis.set_major_formatter(ticks)
+
+    # plot the percentage box for passing this cut
+    plotPercentageBoxSim(ax, fracPassThisCut.values()[0] / fracPassThisCut.counts()[0])
 
     # plot the ratio if wanted
     if axRatio is not None:
