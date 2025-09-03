@@ -31,6 +31,9 @@ def plotHistogram(rootFile, plotConfig, directory="plots",
     plotReco = plotReco and not plotConfig.onlySim
     plotSim = plotSim and not plotConfig.onlyReco
 
+    if not (plotReco | plotSim):
+        return 0
+
     # plot the histograms
     if "1D" in plotConfig.type:
         if "slice" in plotConfig.type:
