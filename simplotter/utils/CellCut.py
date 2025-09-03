@@ -20,12 +20,14 @@ class CellCut:
     isStartingCut = False
     isLayerDependent = False
     isLog = False
+    isLogY = False
     # layerIds
     innerLayer = None
     outerLayer = None
 
     def __init__(self, histname, min=-np.inf, max=np.inf, 
-                 label="", cutLabelAddition="", yLabelAddition="", isLog=False,
+                 label="", cutLabelAddition="", yLabelAddition="", 
+                 isLog=False, isLogY=False,
                  isDoubletCut=False, isConnectionCut=False, isStartingCut=False,
                  isLayerDependent=False, innerLayer=None, outerLayer=None
                 ):
@@ -49,5 +51,6 @@ class CellCut:
         self.isStartingCut = isStartingCut
         self.isLayerDependent = True if (innerLayer is not None) else isLayerDependent
         self.isLog = isLog
+        self.isLogY = isLogY
         self.innerLayer = innerLayer
         self.outerLayer = outerLayer
