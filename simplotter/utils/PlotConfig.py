@@ -31,22 +31,28 @@ class PlotConfig:
     plotCumSumReco = False
     onlyReco = False
     onlySim = False
+    # limits fixed by user
+    xLim = None
+    yLim = None
+    zLim = None
     # configs for plotting a 2D histogram sliced into multiple 1D histograms (type="sliced2D")
     slices = []  # indices of the slices/bins to be plotted
     axis = 0     # axis to take the slices from
     axisIsDiscrete = False # if the sliced axis is discrete, set to True
     sliceLabel = ""  # label for the sliced quantity
     sliceLabelAlignment = "left" # label in plot either left or right
+    sliceRatio = False # plot ratios instead of absolute numbers
 
     def __init__(self, histname, plotname=None, subfolder="", 
                  type=None, ratiohistname=None,
                  xLabel=None, yLabel=None, zLabel=None, 
                  hasLayerPairsOnX=False, hasLayerPairsOnY=False, hasLayerPairsOnXY=False,
                  isLogX=False, isLogY=False, isLogZ=True, plotCumSumReco=False,
+                 xLim=None, yLim=None, zLim=None,
                  isDoublets=False, isNtuplets=False, isParticles=False,
                  useStartingPairs=False, onlyReco=False, onlySim=False,
                  slices=[], axis=0, axisIsDiscrete=False, sliceLabel="",
-                 sliceLabelAlignment="left"
+                 sliceLabelAlignment="left", sliceRatio=False
                 ):
         self.histname = histname
         self.ratiohistname = ratiohistname
@@ -69,11 +75,16 @@ class PlotConfig:
         self.onlyReco = onlyReco
         self.onlySim = onlySim
 
+        self.xLim=xLim
+        self.yLim=yLim
+        self.zLim=zLim
+
         self.slices = slices
         self.axis = axis
         self.axisIsDiscrete = axisIsDiscrete
         self.sliceLabel = sliceLabel
         self.sliceLabelAlignment = sliceLabelAlignment
+        self.sliceRatio = sliceRatio
 
         if isDoublets:
             self.simSubject = "SimDoublet"
@@ -84,7 +95,7 @@ class PlotConfig:
             self.recoSubject = "Ntuplet"
             self.isNtuplets = True
         elif isParticles:
-            self.simSubject = "TrackingParticle"
+            self.simSubject = "Simulated particle"
             self.recoSubject = "Track"
             self.isParticles = True
         
@@ -130,4 +141,4 @@ class PlotConfig:
             elif which=="True":
                 return "#Ntuplets of consecutive\nRecHits from true tracks"
             elif which=="Sim":
-                return "#TSimNtuplets"
+                return "#SimNtuplets"
