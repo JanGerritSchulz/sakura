@@ -34,9 +34,9 @@ def xlabel(label, ax=None, **kwargs):
     # if the label is a key to another label, use that one
     # e.g. eff -> Efficiency
     if label in LABEL_DICT.keys():
-        ax.set_xlabel(LABEL_DICT[label], **kwargs)
+        return ax.set_xlabel(LABEL_DICT[label], **kwargs)
     else:
-        ax.set_xlabel(label, **kwargs)
+        return ax.set_xlabel(label, **kwargs)
 
 
 def ylabel(label, ax=None, **kwargs):
@@ -50,20 +50,26 @@ def ylabel(label, ax=None, **kwargs):
     # if the label is a key to another label, use that one
     # e.g. eff -> Efficiency
     if label in LABEL_DICT.keys():
-        ax.set_ylabel(LABEL_DICT[label], **kwargs)
+        return ax.set_ylabel(LABEL_DICT[label], **kwargs)
     else:
-        ax.set_ylabel(label, **kwargs)
+        return ax.set_ylabel(label, **kwargs)
 
 
-def cmslabel(**kwargs):
+def cmslabel(publish=False, **kwargs):
     """Wrapper for the CMS label in plots. Reason for this is to avoid having to import hep each and every time.
-    """    
-    hep.cms.label(**kwargs)
+    """
+    if publish:
+        kwargs["loc"] = 4
+        exptext, expsuffix, supptext, explumi = hep.cms.label(**kwargs)
+        explumi.set_fontsize(explumi.get_fontsize() / 1.25)
+        return exptext, expsuffix, supptext, explumi
+    else:
+        return hep.cms.label(**kwargs)
 
 def lumilabel(**kwargs):
     """Wrapper for the lumi label in upper right in plots. Reason for this is to avoid having to import hep each and every time.
     """    
-    hep.cms.lumitext(**kwargs)
+    return hep.cms.lumitext(**kwargs)
 
 
 def savefig(filename, dpi=165, bbox_inches="tight", **kwargs):
@@ -80,4 +86,4 @@ def savefig(filename, dpi=165, bbox_inches="tight", **kwargs):
         Path(directory).mkdir(parents=True, exist_ok=True)
     
     # save the plot
-    plt.savefig(filename, dpi=dpi, bbox_inches=bbox_inches, **kwargs)
+    return plt.savefig(filename, dpi=dpi, bbox_inches=bbox_inches, **kwargs)
