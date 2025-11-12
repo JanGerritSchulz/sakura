@@ -94,8 +94,8 @@ def plotCutRecoDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEv
     if ax is None:
         ax = plt.gca()
 
-    subject = "Doublet" if cellCut.isDoubletCut else (
-              "Connection" if cellCut.isConnectionCut else
+    subject = "doublet" if cellCut.isDoubletCut else (
+              "triplet" if cellCut.isConnectionCut else
               "Track"
     )
         
@@ -105,29 +105,29 @@ def plotCutRecoDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEv
 
     alpha = 0.25
     if histTrue.sum() > 0:
-        histTrue.plot1d(ax=ax, histtype="fill", label="%ss of true PixelTracks" % subject, facecolor=toRGBA(Colors.true,alpha)) 
-        histTrue.plot1d(ax=ax, histtype="step", label="%ss of true PixelTracks" % subject, color=Colors.true, linestyle="dashed")
+        histTrue.plot1d(ax=ax, histtype="fill", label="%ss from\nmatched pixel tracks" % subject, facecolor=toRGBA(Colors.true,alpha)) 
+        histTrue.plot1d(ax=ax, histtype="step", label="%ss from\nmatched pixel tracks" % subject, color=Colors.true, linestyle="dashed")
     else:
-        ax.axhline(0, label="no %ss of true PixelTracks" % subject, color=Colors.true, linestyle="dashed")
+        ax.axhline(0, label="no %ss of matched pixel tracks" % subject, color=Colors.true, linestyle="dashed")
         
     if histTrue.sum() > 0:
-        histFake.plot1d(ax=ax, histtype="fill", label="%ss of fake PixelTracks" % subject, facecolor=toRGBA(Colors.fake,alpha))
-        histFake.plot1d(ax=ax, histtype="step", label="%ss of fake PixelTracks" % subject, color=Colors.fake, linestyle="dashed")
+        histFake.plot1d(ax=ax, histtype="fill", label="%ss from\nfake pixel tracks" % subject, facecolor=toRGBA(Colors.fake,alpha))
+        histFake.plot1d(ax=ax, histtype="step", label="%ss from\nfake pixel tracks" % subject, color=Colors.fake, linestyle="dashed")
     else:
-        ax.axhline(0, label="no %ss of fake PixelTracks" % subject, color=Colors.fake, linestyle="dashed")
+        ax.axhline(0, label="no %ss of fake pixel tracks" % subject, color=Colors.fake, linestyle="dashed")
 
     # scale according to number of events if given
     if nEvents is not None:
         ticks = mpl.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/nEvents))
         ax.yaxis.set_major_formatter(ticks)
 
-    ax.set_ylabel("#%ss from\nRecoTracks" % subject + ("" if nEvents is None else " / event") + cellCut.yLabelAddition)
+    ax.set_ylabel("Number of %ss from pixel tracks" % subject + ("" if nEvents is None else " / event") + cellCut.yLabelAddition)
 
     # plot the ratio if wanted
     if axRatio is not None:
         if (histTrue+histFake).sum() > 0:
             plotRatioEfficiency(histFake, histTrue+histFake, cellCut=cellCut, ax=axRatio, fmt=".", color="r")
-        axRatio.set_ylabel("Reco%s\nfake rate" % subject, fontsize="x-small", color="r")
+        axRatio.set_ylabel("%s\nfake rate" % subject, fontsize="x-small", color="r")
 
     trueXLimits = findXLimits(histTrue, log=ax.get_xscale() == "log")
     fakeXLimits = findXLimits(histFake, log=ax.get_xscale() == "log")
@@ -137,7 +137,7 @@ def plotCutRecoDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEv
 
 
 
-def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEvents=None):
+def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEvents=None, insert=" "):
     """
     Plot a given cut parameter for the true SimDoublets.
     """
@@ -145,7 +145,7 @@ def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEve
         ax = plt.gca()
     
     subject  = "SimDoublet" if cellCut.isDoubletCut else (
-               "SimConnection" if cellCut.isConnectionCut else
+               "SimTriplet" if cellCut.isConnectionCut else
                "TrackingParticle")
 
     # load histograms
@@ -162,16 +162,16 @@ def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEve
     if histTotal.sum() > 0:
         #ax.stairs(passValues, passEdges, fill=True, color='#5790fc', alpha=0.5, label="SimDoublets (pass this cut)")
         if histPass.sum() > 0:
-            histPass.plot1d(ax=ax, histtype="fill", label="%ss (pass all cuts)" % subject, hatch='//', facecolor="w", edgecolor=Colors.passed)
-            histPass.plot1d(ax=ax, histtype="step", label="%ss (pass all cuts)" % subject, color=Colors.passed, linewidth=2)
+            histPass.plot1d(ax=ax, histtype="fill", label="reconstructed %ss%s" % (subject, insert), hatch='//', facecolor="w", edgecolor=Colors.passed)
+            histPass.plot1d(ax=ax, histtype="step", label="reconstructed %ss%s" % (subject, insert), color=Colors.passed, linewidth=2)
         else:
             ax.axhline(0, label="no %s passed all cuts" % subject, color=Colors.passed, linewidth=2)
-        histTotal.plot1d(ax=ax, histtype="step", label="%ss (all)" % subject, color=Colors.total, linewidth=2)
+        histTotal.plot1d(ax=ax, histtype="step", label="total %ss%s" % (subject, insert), color=Colors.total, linewidth=2)
     else:
         ax.axhline(0, label="no %ss" % subject, color=Colors.total, linewidth=2)
     
     # set fix axes
-    ax.set_ylabel("#%ss" % subject + ("" if nEvents is None else " / event") + cellCut.yLabelAddition)
+    ax.set_ylabel("Number of %ss" % subject + ("" if nEvents is None else " / event") + cellCut.yLabelAddition)
 
     # scale according to number of events if given
     if nEvents is not None:
@@ -179,7 +179,7 @@ def plotCutSimDoublets(rootFile, cellCut, subfolder, ax=None, axRatio=None, nEve
         ax.yaxis.set_major_formatter(ticks)
 
     # plot the percentage box for passing this cut
-    plotPercentageBoxSim(ax, fracPassThisCut.values()[0] / fracPassThisCut.counts()[0])
+    #plotPercentageBoxSim(ax, fracPassThisCut.values()[0] / fracPassThisCut.counts()[0])
 
     # plot the ratio if wanted
     if axRatio is not None:
@@ -273,7 +273,7 @@ def plotCutParameter(rootFile, cellCut, directory="plots",
     
     # add the CMS label
     if cmsConfig is not None:
-        cmslabel(ax=ax1, llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"])
+        cmslabel(ax=ax1, **cmsConfig)
     
     # save and show the figure
     axs = [ax1, ax1c] if (plotCutRecoDoublets and plotCutSimDoublets) else [ax1]

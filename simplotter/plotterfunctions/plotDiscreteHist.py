@@ -25,7 +25,7 @@ def plotDiscreteHistSim(rootFile, plotConfig, ax=None, axRatio=None, nEvents=Non
 
     ax.bar(xTotal, histTotal.values(), w, yerr=np.sqrt(histTotal.variances()), color=Colors.total, label="%ss (all)" % plotConfig.simSubject)
     ax.bar(xPass, histPass.values(), w, yerr=np.sqrt(histPass.variances()), color=Colors.passed, 
-           label="TrackingParticles (w/ alive SimNtuplet)" if plotConfig.isParticles else "%ss (pass all cuts)" % plotConfig.simSubject)
+           label="Simulated particles (w/ alive SimNtuplet)" if plotConfig.isParticles else "%ss (pass all cuts)" % plotConfig.simSubject)
 
     # scale according to number of events if given
     if nEvents is not None:
@@ -150,6 +150,6 @@ def plotDiscreteHist(rootFile, plotConfig, axSim=None, axReco=None,
         if ax_ is not None:
             ax_.xaxis.set_tick_params(which='minor',bottom=False,top=False)
 
-    ax2.set_xticks(x[maskX], [(str(int(x_)) if (x_%stride==0) else "") for x_ in x[maskX]])
+    ax2.set_xticks(x[maskX], [(str(int(x[i_])) if (i_%stride==0) else "") for i_ in np.arange(len(maskX))[maskX]])
 
     return xLim
