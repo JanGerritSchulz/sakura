@@ -16,6 +16,7 @@ To install the package, first down load this repository, and pip install by perf
 ```bash
 git clone https://github.com/JanGerritSchulz/sakura.git
 cd sakura
+git switch PR_CAExt_wip
 pip3 install .
 ```
 
