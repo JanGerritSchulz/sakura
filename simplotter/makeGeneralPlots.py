@@ -267,8 +267,22 @@ def main():
     print(" * DQM file:", args.DQM)
 
     
-    if args.config[-3:] == ".py":
-        CUTfile = args.directory + '/cutValues.yml'
+    # if the given config is yaml, it should already contain the cut values in the correct format
+    if args.config[-4:] == ".yml":
+        print(" * provided config file for cuts (yaml):", args.config)
+        CUTfile = args.config
+
+        # open and get layerPairs and startingPairs
+        import yaml
+        with open(CUTfile, "r") as f_:
+            theCONFIG = yaml.load(f_, Loader=yaml.FullLoader)
+            layerPairs = theCONFIG["layerPairs"]
+            startingPairs = theCONFIG["startingPairs"]
+            startingPairsIndex = theCONFIG["startingPairsIndex"]
+        nEventsFromConfig = -1
+
+    # elif python format, assume it is a cmssw config file
+    elif args.config[-3:] == ".py":
         print(" * provided config file for cuts (CMSSW config):", args.config)
         print("   -> read layer pairs from CMSSW config")
         print(" * for that use the layer pairs set in the analyzer module named:", args.analyzer)
@@ -289,7 +303,7 @@ def main():
         startingPairsIndex = list(getattr(simDoubletsAnalyzer.geometry, "startingPairs"))
         startingPairs = [layerPairs[i] for i in startingPairsIndex]
         nEventsFromConfig = config_module.process.maxEvents.input.value()
-    
+
     # else, something's wrong
     else:
         raise ValueError("Invalid parameter `config`! Please give either a yaml file with the cut parameters (.yml) or the cmssw config directly (.py).")
