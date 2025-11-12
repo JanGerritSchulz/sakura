@@ -10,6 +10,7 @@ class CellCut:
     label = ""
     cutLabelAddition = ""
     yLabelAddition = ""
+    legendTitle = None
     # type of the cut plus limits: "min", "max" or "both"
     type = None
     min = -np.inf
@@ -21,15 +22,18 @@ class CellCut:
     isLayerDependent = False
     isLog = False
     isLogY = False
+    xLim = None
     # layerIds
     innerLayer = None
     outerLayer = None
 
     def __init__(self, histname, min=-np.inf, max=np.inf, 
-                 label="", cutLabelAddition="", yLabelAddition="", 
-                 isLog=False, isLogY=False,
+                 label="", cutLabelAddition="", yLabelAddition="",
+                 labelUp=None, labelLow=None, 
+                 isLog=False, isLogY=False, xLim=None,
                  isDoubletCut=False, isConnectionCut=False, isStartingCut=False,
-                 isLayerDependent=False, innerLayer=None, outerLayer=None
+                 isLayerDependent=False, innerLayer=None, outerLayer=None,
+                 legendTitle=None
                 ):
         if (max == np.inf) and (min == -np.inf):
             self.type = None
@@ -43,6 +47,8 @@ class CellCut:
         self.max = max
         self.name = None
         self.label = label
+        self.labelUp = labelUp
+        self.labelLow = labelLow
         self.cutLabelAddition = cutLabelAddition
         self.yLabelAddition = yLabelAddition
         self.histname = histname
@@ -52,5 +58,7 @@ class CellCut:
         self.isLayerDependent = True if (innerLayer is not None) else isLayerDependent
         self.isLog = isLog
         self.isLogY = isLogY
+        self.xLim = xLim
         self.innerLayer = innerLayer
         self.outerLayer = outerLayer
+        self.legendTitle = legendTitle
