@@ -63,16 +63,25 @@ def setStyle(customized=True):
         plt.rcParams['figure.figsize'] = (12, 9)
 
 
-def cmslabel(**kwargs):
+def cmslabel(publish=False, extraLabel=None, **kwargs):
     """Wrapper for the CMS label in plots. Reason for this is to avoid having to import hep each and every time.
     """    
-    hep.cms.label(**kwargs)
+    
+    if publish:
+        kwargs["loc"] = 4
+        exptext, expsuffix, supptext, explumi = hep.cms.label(**kwargs)
+        explumi.set_fontsize(explumi.get_fontsize() / 1.25)
+        if extraLabel is not None:
+            lumilabel(text=extraLabel, fontsize=explumi.get_fontsize())
+        return exptext, expsuffix, supptext, explumi
+    else:
+        return hep.cms.label(**kwargs)
 
 
 def lumilabel(**kwargs):
     """Wrapper for the lumi label in upper right in plots. Reason for this is to avoid having to import hep each and every time.
     """    
-    hep.cms.lumitext(**kwargs)
+    return hep.cms.lumitext(**kwargs)
 
 
 def savefig(filename, dpi=165, bbox_inches="tight", **kwargs):
@@ -89,7 +98,7 @@ def savefig(filename, dpi=165, bbox_inches="tight", **kwargs):
         Path(directory).mkdir(parents=True, exist_ok=True)
     
     # save the plot
-    plt.savefig(filename, dpi=dpi, bbox_inches=bbox_inches, **kwargs)
+    return plt.savefig(filename, dpi=dpi, bbox_inches=bbox_inches, **kwargs)
 
 
 def combineSubplotHandlesLabels(axs):
@@ -102,7 +111,8 @@ def combineSubplotHandlesLabels(axs):
     handlesLabels = [ax.get_legend_handles_labels() for ax in axs]
     handles, labels = [sum(lol, []) for lol in zip(*handlesLabels)]
     # find the unique labels
-    uniqueLabels = np.unique(labels)
+    __, idx = np.unique(labels, return_index=True)
+    uniqueLabels = [labels[i] for i in idx]
     labels = np.array(labels)
     # get all handles for the unique labels
     uniqueHandles = [tuple([handles[i] for i in np.where(label==labels)[0]]) for label in uniqueLabels]
@@ -110,7 +120,7 @@ def combineSubplotHandlesLabels(axs):
     # return the list of combined handles and labels
     return uniqueHandles, uniqueLabels
 
-def legend(ax, axs=None, **kwargs):
+def legend(ax, axs=None, order=None, **kwargs):
     """Plot a global legend for all axs of the list axs in the given subplot ax.
 
     Args:
@@ -122,21 +132,29 @@ def legend(ax, axs=None, **kwargs):
         axs = [ax]
     # get handles, labels and plot the legend
     handles, labels = combineSubplotHandlesLabels(axs)
-    ax.legend(handles, labels, **kwargs)
+    if order is not None:
+        handles, labels = [handles[o] for o in order], [labels[o] for o in order]
+    return ax.legend(handles, labels, **kwargs)
 
 
 def plotPercentageBox(ax, percentage, boxcolor, textcolor, loc="upper left"):
     anchored_text = mpl.offsetbox.AnchoredText("%.2f%s" % (percentage*100,"%"), loc=loc, frameon = False,
                                 prop={"color": textcolor, "backgroundcolor": boxcolor, 
                                       "bbox": {"facecolor":boxcolor, "edgecolor":boxcolor, "boxstyle":"Square, pad=0.4"}})
-    ax.add_artist(anchored_text)
+    return ax.add_artist(anchored_text)
 
 def plotPercentageBoxSim(ax, percentage, loc="upper right"):
     boxcolor = ColorMap.SimEff(percentage)
     textcolor = "k" if (percentage < 0.7) and (percentage>0.3) else "w"
-    plotPercentageBox(ax, percentage, boxcolor, textcolor, loc=loc)
+    return plotPercentageBox(ax, percentage, boxcolor, textcolor, loc=loc)
 
 def plotPercentageBoxReco(ax, percentage, loc="upper left"):
     boxcolor = ColorMap.RecoEff(percentage)
     textcolor = "k" if (percentage<0.3) else "w"
-    plotPercentageBox(ax, percentage, boxcolor, textcolor, loc=loc)
+    return plotPercentageBox(ax, percentage, boxcolor, textcolor, loc=loc)
+
+def setXLim(ax, plotConfig, xLim=None, limitXRange=False):
+    if plotConfig.xLim is not None:
+        return ax.set_xlim(plotConfig.xLim)
+    if limitXRange and (xLim is not None):
+        return ax.set_xlim(xLim)
