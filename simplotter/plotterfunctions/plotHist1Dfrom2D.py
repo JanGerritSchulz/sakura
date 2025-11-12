@@ -186,7 +186,7 @@ def plotHist1Dfrom2D(rootFile, plotConfig, directory="plots",
 
     # add the CMS label
     if cmsConfig is not None:
-        cmslabel(ax=axs[0], llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"])
+        cmslabel(ax=axs[0], **cmsConfig)
     
     # save and show the figure
     savefig("%s/%s.%s" % (directory, plotConfig.plotname, saveas))

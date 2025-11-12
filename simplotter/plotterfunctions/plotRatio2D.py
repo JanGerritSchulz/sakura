@@ -40,7 +40,7 @@ def plotRatio2D_(rootFile, plotConfig, directory="plots", cmsConfig=None, layerP
 
     # add the CMS label
     if cmsConfig is not None:
-        cmslabel(llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"])
+        cmslabel(ax=ax, **cmsConfig)
 
     # save and show the figure
     savefig("%s/%s_%s.%s" % (directory, plotConfig.plotname, ("SimEfficiency" if which=="Sim" else "RecoFakeRate"), saveas))

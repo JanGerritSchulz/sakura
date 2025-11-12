@@ -49,7 +49,7 @@ def plotEfficiency2D(ROOTfile, histname, directory="plots", x_label="", y_label=
 
     # add the CMS label
     if cmsconfig is not None:
-        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
+        cmslabel(**cmsconfig)
 
     # save and show the figure
     Path(directory).mkdir(parents=True, exist_ok=True)

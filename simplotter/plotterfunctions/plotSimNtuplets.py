@@ -17,8 +17,8 @@ def plotSimNtuplets(rootFile, plotConfig, directory="plots", cmsConfig=None, sav
     categories = {
         "Alive" : {"label" : "built", "color" : colorPalette[0]},
         "NotStartingPair" : {"label" : "Ntuplet does not start in a starting pair", "color" : colorPalette[5]},
-        "KilledTripletConnections" : {"label" : "has killed triplet connections", "color" : colorPalette[4]},
-        "KilledDoubletConnections" : {"label" : "has killed doublet connections", "color" : colorPalette[3]},
+        #"KilledTripletConnections" : {"label" : "has killed triplet connections", "color" : colorPalette[4]},
+        "KilledConnections" : {"label" : "has killed doublet connections", "color" : colorPalette[3]},
         "KilledDoublets" : {"label" : "has killed doublets", "color" : colorPalette[2]},
         "MissingLayerPair" : {"label" : "is missing a layer pair", "color" : colorPalette[1]},
         "TooShort" : {"label" : "shorter than reco threshold", "color" : colorPalette[6]},
@@ -70,7 +70,7 @@ def plotSimNtuplets(rootFile, plotConfig, directory="plots", cmsConfig=None, sav
     
     # add the CMS label
     if cmsConfig is not None:
-        cmslabel(ax=ax, llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"])
+        cmslabel(ax=ax, **cmsConfig)
     
     # save and show the figure
     savefig("%s/%s.%s" % (directory, plotConfig.plotname, saveas))

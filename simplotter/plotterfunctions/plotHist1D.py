@@ -77,7 +77,7 @@ def plotHist1D(rootFile, plotConfig, directory="plots",
 
     # add the CMS label
     if cmsConfig is not None:
-        cmslabel(ax=ax1, llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"])
+        cmslabel(ax=ax1, **cmsConfig)
     
     # save and show the figure
     savefig("%s/%s.%s" % (directory, plotConfig.plotname, saveas))

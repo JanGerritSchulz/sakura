@@ -37,7 +37,7 @@ def plotProfile(rootFile, plotConfig, directory="plots", cmsConfig=None, saveas=
     
     # add the CMS label
     if cmsConfig is not None:
-        cmslabel(llabel=cmsConfig["llabel"], rlabel=cmsConfig["rlabel"], com=cmsConfig["com"], ax=ax)
+        cmslabel(ax=ax, **cmsConfig)
     
     # save and show the figure
     savefig("%s/%s.%s" % (directory, plotConfig.plotname, saveas))

@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from sakura.tools.plotting_helpers import xlabel, ylabel, cmslabel, savefig
+from simplotter.utils.plotttools import xlabel, ylabel, cmslabel, savefig
 from sakura.histograms.Hist import Hist
 from pathlib import Path
 
@@ -39,7 +39,7 @@ def plotHist(ROOTfile, histname, directory="plots", num_events=None, x_label="",
     
     # add the CMS label
     if cmsconfig is not None:
-        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
+        cmslabel(**cmsconfig)
     
     # save and show the figure
     Path(directory).mkdir(parents=True, exist_ok=True)

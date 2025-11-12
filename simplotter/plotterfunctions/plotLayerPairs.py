@@ -43,7 +43,7 @@ def plotLayerPairs(ROOTfile, histname, directory="plots", num_events=None, x_lab
 
     # add the CMS label
     if cmsconfig is not None:
-        cmslabel(llabel=cmsconfig["llabel"], rlabel=cmsconfig["rlabel"], com=cmsconfig["com"])
+        cmslabel(**cmsconfig)
 
     # save and show the figure
     if plotname is None:
