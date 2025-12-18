@@ -21,10 +21,11 @@ from simplotter.plotterfunctions.plotHistogram import plotHistogram
 
 GENERALPLOTLIST = [
     # discrete 1D plots
-    PlotConfig("general/numSimDoublets",       type="discrete1D", isParticles=True, xLabel="#Doublets / TrackingObject",         plotCumSumReco=True),
-    PlotConfig("general/numLayers",            type="discrete1D", isParticles=True, xLabel="#(hit layers) / TrackingObject",     plotCumSumReco=True),
-    PlotConfig("general/numRecHits",           type="discrete1D", isParticles=True, xLabel="#RecHits / TrackingObject",          plotCumSumReco=True),
-    PlotConfig("general/numSkippedLayers",     type="discrete1D", isParticles=True, xLabel="#(skipped layers) / TrackingObject", plotCumSumReco=True),
+    PlotConfig("general/numSimDoublets",       type="discrete1D", isParticles=True, xLabel="#Doublets / TrackingObject",            plotCumSumReco=True),
+    PlotConfig("general/numLayers",            type="discrete1D", isParticles=True, xLabel="#(hit layers) / TrackingObject",        plotCumSumReco=True),
+    PlotConfig("general/numRecHits",           type="discrete1D", isParticles=True, xLabel="#RecHits / TrackingObject",             plotCumSumReco=True),
+    PlotConfig("general/numRecHitsMinusLayers",type="discrete1D", isParticles=True, xLabel="(#RecHits - #layers) / TrackingObject", plotCumSumReco=True),
+    PlotConfig("general/numSkippedLayers",     type="discrete1D", isParticles=True, xLabel="#(skipped layers) / TrackingObject",    plotCumSumReco=True),
     PlotConfig("SimDoublets/numSkippedLayers", type="discrete1D", isDoublets=True,  xLabel="#(skipped layers) / Doublet"                            ),
 
     # 1D plots
@@ -44,6 +45,7 @@ GENERALPLOTLIST = [
     PlotConfig("SimNtuplets/longest/firstVsSecondLayer", type="2D", isParticles=True, xLabel="First layer", yLabel="Second layer", hasLayerPairsOnXY=True, useStartingPairs=True, plotname="general/startingPairs"),
     PlotConfig("general/numSkippedLayers_vs_numLayers",  type="2D", isParticles=True, xLabel="#layers",     yLabel="#(skipped layers)"),
     PlotConfig("general/numSkippedLayers_vs_numRecHits", type="2D", isParticles=True, xLabel="#RecHits",    yLabel="#(skipped layers)"),
+    PlotConfig("general/numRecHitsMinusLayers_vs_eta",   type="2D", isParticles=True, xLabel=r"$\eta$",     yLabel="#RecHits - #layers"),
     PlotConfig("SimNtuplets/longest/layerSpan",          type="2D", isParticles=True, xLabel="First layer", yLabel="Last layer",   plotname="general/layerSpan"),
 
     # 2D ratios
@@ -244,8 +246,8 @@ parser.add_argument("config", type=str, help="Path to the cmssw config file that
                     "(please specify the module name of the analyzer under `-a ANALYZERNAME` if it differs from the default `simDoubletsAnalyzerPhase2`)")
 parser.add_argument("-d", "--directory", type=str, default="plots", help="directory to save the plots in")
 parser.add_argument("-n", "--nEvents", default=-1, type=int,  help="Number of events (used for scaling to numbers per event if given)")
-parser.add_argument("-a", "--analyzer", type=str, default="simDoubletsAnalyzerPhase2", help="Name of the analyzer module "+
-                    "(needs to be given if the config file is cmssw config, default `simDoubletsAnalyzerPhase2`)")
+parser.add_argument("-a", "--analyzer", type=str, default="simPixelTrackAnalyzerPhase2", help="Name of the analyzer module "+
+                    "(needs to be given if the config file is cmssw config, default `simPixelTrackAnalyzerPhase2`)")
 parser.add_argument("--llabel", default="Private Work", help="label next to CMS in plot")
 parser.add_argument("--rlabel", default=None, help="label displayed in upper right of plot")
 parser.add_argument("--com", default=14, help="center of mass displayed in plots")
