@@ -11,10 +11,11 @@ from simplotter.utils.CellCut import CellCut
 from simplotter.utils.plotttools import setStyle
 from simplotter.utils.utils import valToLatexStr
 
-CUTlist_vectors = ["caDCACuts", "caThetaCuts", "phiCuts", "minInner", "maxInner", "minOuter", "maxOuter", 
-                   "maxDZ", "minDZ", "maxDR", "isBarrel"]
+CUTlist_vectors = ["caDCACuts", "caThetaCuts", "phiCuts", "ptCuts", 
+                   "minInner", "maxInner", "minOuter", "maxOuter", 
+                   "maxDZ", "minDZ", "maxDR"]
 CUTlist_scalars = ["minYsizeB1", "minYsizeB2", 
-                   "maxDYsize12", "maxDYsize", "maxDYPred", "cellZ0Cut", "cellPtCut",
+                   "maxDYsize12", "maxDYsize", "maxDYPred", "cellZ0Cut", #"cellPtCut",
                    "ptmin", "hardCurvCut"]
 
 # ------------------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ def getCutParameters(cutFile="cutParameters/currentCuts.yml"):
     GlobalCellCuts = {
         # doublet cuts
         "z0":       CellCut("z0",       isDoubletCut=True, max=CUTS["cellZ0Cut"],   label="Longitudinal impact parameter $z_0$ [cm]"),
-        "pTFromR":  CellCut("pTFromR",  isDoubletCut=True, min=CUTS["cellPtCut"],   label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True),
+        #"pTFromR":  CellCut("pTFromR",  isDoubletCut=True, min=CUTS["cellPtCut"],   label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True),
         "DYPred":   CellCut("DYPred",   isDoubletCut=True, max=CUTS["maxDYPred"],   label="Absolute difference between\nactual and expected inner cluster size [pixels]"),
         "DYsize12": CellCut("DYsize12", isDoubletCut=True, max=CUTS["maxDYsize12"], label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
         "DYsize":   CellCut("DYsize",   isDoubletCut=True, max=CUTS["maxDYsize"],   label="Absolute difference between sizes \n of inner and outer cluster [pixels]"),
@@ -49,7 +50,7 @@ def getCutParameters(cutFile="cutParameters/currentCuts.yml"):
     LayerCellCuts = {
         # doublet cuts
         "z0":      [CellCut("z0",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["cellZ0Cut"],                            label="Longitudinal impact parameter $z_0$ [cm]") for i, lp in enumerate(layerPairs)],
-        "pTFromR": [CellCut("pTFromR", isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["cellPtCut"],                            label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True) for i, lp in enumerate(layerPairs)],
+        "pTFromR": [CellCut("pTFromR", isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["ptCuts"][i],                            label=r"Transverse momentum $p_\text{T}$ of circle" + "\nthrough SimDoublet and beamspot [GeV]", isLog=True) for i, lp in enumerate(layerPairs)],
         "dr":      [CellCut("dr",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["maxDR"][i],                             label=r"$\text{d}r$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
         "dz":      [CellCut("dz",      isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], min=CUTS["minDZ"][i],    max=CUTS["maxDZ"][i],    label=r"$\text{d}z$ between outer and inner RecHit [cm]") for i, lp in enumerate(layerPairs)],
         "idphi":   [CellCut("idphi",   isDoubletCut=True, innerLayer=lp[0], outerLayer=lp[1], max=CUTS["phiCuts"][i],                           label=r"Absolute integer $\text{d}\phi$ between outer and inner RecHit") for i, lp in enumerate(layerPairs)],
@@ -132,8 +133,8 @@ parser.add_argument("config", type=str, help="Path to config file for applied cu
 parser.add_argument("-d", "--directory", type=str, default="plots", help="directory to save the plots in")
 parser.add_argument("-c", "--cut", default=None, help="cut parameter to be plotted (by default all are plotted)")
 parser.add_argument("-n", "--nEvents", default=-1, type=int,  help="Number of events (used for scaling to numbers per event if given)")
-parser.add_argument("-a", "--analyzer", type=str, default="simDoubletsAnalyzerPhase2", help="Name of the analyzer module "+
-                    "(needs to be given if the config file is cmssw config, default `simDoubletsAnalyzerPhase2`)")
+parser.add_argument("-a", "--analyzer", type=str, default="simPixelTrackAnalyzerPhase2", help="Name of the analyzer module "+
+                    "(needs to be given if the config file is cmssw config, default `simPixelTrackAnalyzerPhase2`)")
 parser.add_argument("--llabel", default="Private Work", help="label next to CMS in plot")
 parser.add_argument("--rlabel", default=None, help="label displayed in upper right of plot")
 parser.add_argument("--com", default=14, help="center of mass displayed in plots")
@@ -182,6 +183,7 @@ def main():
         layerPairs = list(getattr(simDoubletsAnalyzer.geometry, "pairGraph"))
         layerPairs = [layerPairs[2*i:2*i+2] for i in range(int(len(layerPairs)/2))]
         startingPairsIndex = list(getattr(simDoubletsAnalyzer.geometry, "startingPairs"))
+        isBarrel = list(getattr(simDoubletsAnalyzer, "isBarrel"))
         CUTdict = {
             cutname: getattr(simDoubletsAnalyzer, cutname).value() for cutname in CUTlist_scalars
         } | {
@@ -189,7 +191,8 @@ def main():
         } | {
             "layerPairs": layerPairs,
             "startingPairsIndex": startingPairsIndex,
-            "startingPairs": [layerPairs[i] for i in startingPairsIndex]
+            "startingPairs": [layerPairs[i] for i in startingPairsIndex],
+            "isBarrel" : isBarrel
         }
 
         nEventsFromConfig = config_module.process.maxEvents.input.value()
