@@ -16,6 +16,7 @@ from sakura.tools.plotting_helpers import setStyle, xlabel, ylabel, cmslabel, sa
 # import helpers
 from sakura.tools.getRatioHist import getRatioHist
 from sakura.tools.getSumHist import getSumHist
+from sakura.tools.getDiffHist import getDiffHist
 
 # import Histogram classes
 from sakura.histograms.Hist import Hist
