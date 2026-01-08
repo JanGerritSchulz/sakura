@@ -17,11 +17,11 @@ def plotSimNtuplets(rootFile, plotConfig, directory="plots", cmsConfig=None, sav
     categories = {
         "Alive" : {"label" : "built", "color" : colorPalette[0]},
         "NotStartingPair" : {"label" : "Ntuplet does not start in a starting pair", "color" : colorPalette[5]},
-        "KilledTripletConnections" : {"label" : "has killed triplet connections", "color" : colorPalette[4]},
-        "KilledDoubletConnections" : {"label" : "has killed doublet connections", "color" : colorPalette[3]},
+        #"KilledTripletConnections" : {"label" : "has killed triplet connections", "color" : colorPalette[4]},
+        "KilledConnections" : {"label" : "has killed doublet connections", "color" : colorPalette[3]},
         "KilledDoublets" : {"label" : "has killed doublets", "color" : colorPalette[2]},
         "MissingLayerPair" : {"label" : "is missing a layer pair", "color" : colorPalette[1]},
-        "TooShort" : {"label" : "shorter than reco threshold", "color" : colorPalette[6]},
+        #"TooShort" : {"label" : "has 3 RecHits", "color" : colorPalette[6]},  #shorter than reco threshold
         "UndefDoubletCuts" : {"label" : "has undef doublet cuts", "color" : colorPalette[7]},
         "UndefConnectionCuts" : {"label" : "has undef connection cuts", "color" : colorPalette[8]},
     }
@@ -51,7 +51,7 @@ def plotSimNtuplets(rootFile, plotConfig, directory="plots", cmsConfig=None, sav
     
     ax.stairs(np.ones_like(hists[list(categories.keys())[0]].values()), 
               edges, baseline=y_baseline, 
-                label="has 2 or less RecHits",
+                label="has less than 4 RecHits",
                 edgecolor=colorPalette[9], hatch='//')
     
     if rootFileMTV is not None:
