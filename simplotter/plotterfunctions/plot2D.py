@@ -12,6 +12,8 @@ def plot2D_(theHist, fig, ax, zLabel="", logZ=False, nEvents=None, cmap="plasma"
     vmin = np.nanmin(np.ma.masked_equal(w, 0.0, copy=False)) * 0.999
     vmax = np.nanmax(w)
     if logZ:
+        if vmax == 0:
+            vmin, vmax = (1, 2) # safety against empty histogram
         ax.pcolormesh(x, y, w.T, norm=LogNorm(vmin=vmin, vmax=vmax), cmap=cmap)
         fig.colorbar(mpl.cm.ScalarMappable(norm=LogNorm(vmin=vmin, vmax=vmax), cmap=cmap), 
                     ax=ax, extend='min', label=zLabel + ("" if nEvents is None else " / event"))
