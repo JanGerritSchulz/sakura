@@ -16,14 +16,14 @@ def plotSimNtuplets(rootFile, plotConfig, directory="plots", cmsConfig=None, sav
     # load histograms
     categories = {
         "Alive" : {"label" : "built", "color" : colorPalette[0]},
-        "NotStartingPair" : {"label" : "Ntuplet does not start in a starting pair", "color" : colorPalette[5]},
-        #"KilledTripletConnections" : {"label" : "has killed triplet connections", "color" : colorPalette[4]},
-        "KilledConnections" : {"label" : "has killed doublet connections", "color" : colorPalette[3]},
+        "InvalidStart" : {"label" : "first doublet is invalid start", "color" : colorPalette[5]},
+        "KilledQuadruplets" : {"label" : "has killed quadruplets", "color" : colorPalette[4]},
+        "KilledTriplets" : {"label" : "has killed triplets", "color" : colorPalette[3]},
         "KilledDoublets" : {"label" : "has killed doublets", "color" : colorPalette[2]},
         "MissingLayerPair" : {"label" : "is missing a layer pair", "color" : colorPalette[1]},
         #"TooShort" : {"label" : "has 3 RecHits", "color" : colorPalette[6]},  #shorter than reco threshold
         "UndefDoubletCuts" : {"label" : "has undef doublet cuts", "color" : colorPalette[7]},
-        "UndefConnectionCuts" : {"label" : "has undef connection cuts", "color" : colorPalette[8]},
+        "UndefTripletCuts" : {"label" : "has undef connection cuts", "color" : colorPalette[8]},
     }
     hists = {
         c : getHist(rootFile, "SimPixelTracks/SimNtuplets/%s/frac%s_vs_%s" % (plotConfig.histname, c, xQuantity)) for c in categories
@@ -36,7 +36,7 @@ def plotSimNtuplets(rootFile, plotConfig, directory="plots", cmsConfig=None, sav
     y_baseline = np.zeros_like(hists[list(categories.keys())[0]].values())
     edges = hists[list(categories.keys())[0]].axes.edges[0]
     for c in categories.keys():
-        if (c == "UndefDoubletCuts" or c == "UndefConnectionCuts"):
+        if (c == "UndefDoubletCuts" or c == "UndefTripletCuts"):
             if np.sum(hists[c].values()) == 0:
                 continue
         if c == "Alive":
