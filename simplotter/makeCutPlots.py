@@ -11,7 +11,7 @@ from simplotter.utils.CellCut import CellCut
 from simplotter.utils.plotttools import setStyle
 from simplotter.utils.utils import valToLatexStr
 
-CUTlist_vectors = ["caDCACuts", "caThetaCuts", "caDCurvCuts", "caDCurv0", "startMaxInnerR", 
+CUTlist_vectors = ["caDCACuts", "caThetaCuts", #"caDCurvCuts", "caDCurv0", "startMaxInnerR", 
                    "phiCuts", "ptCuts", 
                    "minInner", "maxInner", "minOuter", "maxOuter", 
                    "maxDZ", "minDZ", "maxDR"]
@@ -61,11 +61,11 @@ def getCutParameters(cutFile="cutParameters/currentCuts.yml"):
         "caThetaCut_over_ptmin" :   [CellCut("caThetaCut_over_ptmin", isLog=True, isTripletCut=True, innerLayer=l, max=CUTS["caThetaCuts"][l] / CUTS["ptmin"], label=r"CATheta cut variable $\frac{2 A}{|d\cdot \text{d} r|}$",                yLabelAddition="\n(with centered RecHit in layer %i)" % l, cutLabelAddition=r"\text{CATheta/ptmin}$" + "\n $= " + valToLatexStr(CUTS["caThetaCuts"][l]) +" / " + valToLatexStr(CUTS["ptmin"]) + "=") for l in range(nLayers)],
         "caDCACut" :                [CellCut("caDCACut",              isLog=True, isTripletCut=True, innerLayer=l, max=CUTS["caDCACuts"][l],                   label="Transverse distance to the beamspot\nat point of closest approach [cm]", yLabelAddition="\n(with inner RecHit in layer %i)" % l) for l in range(nLayers)],
         # quadruplet cuts
-        "caDCurvCut" : [CellCut("dCurvCut", isLogZ=True, isQuadrupletCut=True, innerLayer=l, cutFunc=["linear", CUTS["caDCurvCuts"][l], CUTS["caDCurv0"][l]], label=r"Absolute sum of curvatures $\left| \frac{1}{R_i} + \frac{1}{R_o}\right|$ [1/cm]", yLabel=r"Absolute difference in curvature $\left| \frac{1}{R_i} - \frac{1}{R_o}\right|$ [1/cm]", yLabelAddition= "\n(with most outer RecHit in layer %i)" % l) for l in range(nLayers)],
+        #"caDCurvCut" : [CellCut("dCurvCut", isLogZ=True, isQuadrupletCut=True, innerLayer=l, cutFunc=["linear", CUTS["caDCurvCuts"][l], CUTS["caDCurv0"][l]], label=r"Absolute sum of curvatures $\left| \frac{1}{R_i} + \frac{1}{R_o}\right|$ [1/cm]", yLabel=r"Absolute difference in curvature $\left| \frac{1}{R_i} - \frac{1}{R_o}\right|$ [1/cm]", yLabelAddition= "\n(with most outer RecHit in layer %i)" % l) for l in range(nLayers)],
         # starting cuts
-        "firstHitR" : [CellCut("firstHitR", isStartingCut=True, innerLayer=l, max=CUTS["startMaxInnerR"][l], label="$r$-coordinate of first RecHit of the TrackingObject [cm]", yLabelAddition="\n(with first RecHit in layer %i)" % l) for l in range(nLayers)],
+        #"firstHitR" : [CellCut("firstHitR", isStartingCut=True, innerLayer=l, max=CUTS["startMaxInnerR"][l], label="$r$-coordinate of first RecHit of the TrackingObject [cm]", yLabelAddition="\n(with first RecHit in layer %i)" % l) for l in range(nLayers)],
         # fishbone merging
-        "fishbone" : [CellCut("fishboneScore", isLog=True, isFishbone=True, innerLayer=l, max=1-0.99999, label=r"Fishbone alignment score, $1 - \text{score}_\text{fishbone}$", yLabelAddition="\n(with outer RecHit in layer %i)" % l) for l in range(nLayers)],
+        #"fishbone" : [CellCut("fishboneScore", isLog=True, isFishbone=True, innerLayer=l, max=1-0.99999, label=r"Fishbone alignment score, $1 - \text{score}_\text{fishbone}$", yLabelAddition="\n(with outer RecHit in layer %i)" % l) for l in range(nLayers)],
     }
 
     return GlobalCellCuts, LayerCellCuts
