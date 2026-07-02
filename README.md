@@ -14,7 +14,7 @@ This small package `sakura` is just a tiny helper for plotting CMS DQM files. Th
 ## Installation
 To install the package, first down load this repository, and pip install by performing the following commands:
 ```bash
-git clone https://github.com/JanGerritSchulz/sakura.git
+git clone -b 20_0_0_pre1 --single-branch https://github.com/JanGerritSchulz/sakura.git
 cd sakura
 pip3 install .
 ```
